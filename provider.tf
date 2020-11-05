@@ -1,3 +1,4 @@
-provider "azurerm" {
-  alias = "data"
-}
+#provider "azurerm" {
+ # alias = "data"
+  
+#}
