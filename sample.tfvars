@@ -8,7 +8,14 @@ certificate_key_vault_name = "cftapps-sbox"
 certificate_name_check     = true
 data_subscription          = "bf308a5c-0624-4334-8ff8-8dca9fd43783"
 oms_env                    = "sandbox"
-
+common_tags = {
+  "managedBy"          = "Platform Engineering"
+  "solutionOwner"      = "CFT"
+  "activityName"       = "AKS"
+  "dataClassification" = "Internal"
+  "automation"         = ""
+  "costCentre"         = "10245117" // until we get a better one, this is the generic cft contingency one
+}
 
 frontends = [
 
