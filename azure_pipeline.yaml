@@ -36,7 +36,4 @@ stages:
               testResultsFormat: NUnit
               failTaskOnFailedTests: true
             condition: always()
-
-
-
  
