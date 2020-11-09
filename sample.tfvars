@@ -18,6 +18,7 @@ common_tags = {
 }
 kv_resource_group = "core-infra-sbox-rg"
 resource_group    = "lz-sbox-rg"
+subscription_id   = "b72ab7b7-723f-4b18-b6f6-03b0f2c6a1bb"
 frontends = [
 
   {
