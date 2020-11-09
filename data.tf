@@ -1,7 +1,7 @@
 # KeyVault for the certificate must be in the same subscription as Frontdoor.
 data "azurerm_key_vault" "certificate_vault" {
   name                = var.certificate_key_vault_name
-  resource_group_name = var.kv_resource_group 
+  resource_group_name = var.kv_resource_group
 }
 
 data "azurerm_key_vault_secret" "certificate" {
