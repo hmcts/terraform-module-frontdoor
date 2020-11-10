@@ -1,5 +1,5 @@
 data "azurerm_log_analytics_workspace" "main" {
-  provider = "azurerm.data"
+  provider = azurerm.data
 
   name                = "hmcts-${var.oms_env}"
   resource_group_name = "oms-automation"

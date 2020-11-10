@@ -30,7 +30,7 @@ No requirements.
 | resource\_group | Enter Resource Group Name | `string` | n/a | yes |
 | ssl\_mode | Certificate source to encrypted HTTPS traffic with | `string` | n/a | yes |
 | subscription | Enter name of the subsription to deploy frontdoor | `string` | n/a | yes |
-| subscription\_id | Enter ID of control Subscription | `string` | n/a | yes |
+| subscription\_id | Enter Subscription ID | `string` | n/a | yes |
 
 ## Outputs
 

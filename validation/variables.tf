@@ -25,7 +25,7 @@ variable "frontends" {
   type        = any
 }
 variable "subscription_id" {
-  description = "Enter Subscription ID"
+  description = "Enter ID of control Subscription"
   type        = string
 }
 variable "enable_ssl" {
