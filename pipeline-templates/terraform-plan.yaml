@@ -1,5 +1,5 @@
 jobs:
-  - job: Plan_${{ parameters.environment }}
+  - job: Plan
     pool:
       vmImage: ${{ parameters.agentPool }}
     steps:
