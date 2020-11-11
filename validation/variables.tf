@@ -1,18 +1,18 @@
 variable "env" {
-  description = "Enter name of the environment to deploy frontdoor"
+  description = "Enter name of the enviornment to deploy frontdoor"
   type        = string
 }
 variable "subscription" {
-  description = "Name of the subscription to deploy frontdoor, e.g. stg"
+  description = "Enter name of the subsription to deploy frontdoor"
   type        = string
 }
 variable "project" {
-  description = "Name of the project"
+  description = "Enter Name of the project"
   type        = string
-  
+  default     = "hmcts"
 }
 variable "location" {
-  description = "Azure location to deploy the resource"
+  description = "Enter Azure location to deploy the resource"
   type        = string
   default     = "UK South"
 }
@@ -25,7 +25,7 @@ variable "frontends" {
   type        = any
 }
 variable "subscription_id" {
-  description = "Enter Subscription ID"
+  description = "Enter ID of control Subscription"
   type        = string
 }
 variable "enable_ssl" {
@@ -33,7 +33,7 @@ variable "enable_ssl" {
   type        = bool
 }
 variable "ssl_mode" {
-  description = "Certificate source to encrypt HTTPS traffic with. eg. AzureKeyVault, FrontDoor"
+  description = "Certificate source to encrypted HTTPS traffic with"
   type        = string
 }
 variable "resource_group" {
@@ -45,14 +45,14 @@ variable "certificate_key_vault_name" {
   type        = string
 }
 variable "oms_env" {
-  description = "Name of the log analytics workspace"
+  description = "Name of the Monitoring enviornment"
   type        = string
 }
 variable "certificate_name_check" {
-  description = "Enforce backend pools certificate name check"
+  description = "Enforce_backend_pools_certificate_name_check"
   type        = bool
 }
-variable "key_vault_resource_group" {
-  description = "Key Vault resource group name"
+variable "kv_resource_group" {
+  description = "Keyvault resource group name"
   type        = string
 }
