@@ -21,3 +21,4 @@ frontends = [
   }
 ]
 common_tags = {}
+resource_group = ""
