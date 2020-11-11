@@ -1,5 +1,5 @@
 variable "env" {
-  description = "Enter name of the enviornment to deploy frontdoor"
+  description = "Enter name of the environment to deploy frontdoor"
   type        = string
 }
 variable "subscription" {
