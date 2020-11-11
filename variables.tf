@@ -9,7 +9,7 @@ variable "subscription" {
 variable "project" {
   description = "Name of the project"
   type        = string
-  
+
 }
 variable "location" {
   description = "Azure location to deploy the resource"
