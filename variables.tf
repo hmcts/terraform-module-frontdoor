@@ -52,7 +52,7 @@ variable "certificate_name_check" {
   description = "Enforce_backend_pools_certificate_name_check"
   type        = bool
 }
-variable "kv_resource_group" {
+variable "key_vault_resource_group" {
   description = "Key Vault resource group name"
   type        = string
 }
