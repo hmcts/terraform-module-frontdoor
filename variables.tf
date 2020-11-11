@@ -12,7 +12,7 @@ variable "project" {
   default     = "hmcts"
 }
 variable "location" {
-  description = "Enter Azure location to deploy the resource"
+  description = "Azure location to deploy the resource"
   type        = string
   default     = "UK South"
 }
