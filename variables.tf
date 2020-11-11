@@ -3,7 +3,7 @@ variable "env" {
   type        = string
 }
 variable "subscription" {
-  description = "Enter name of the subsription to deploy frontdoor"
+  description = "Name of the subscription to deploy frontdoor, e.g. stg"
   type        = string
 }
 variable "project" {
