@@ -53,6 +53,6 @@ variable "certificate_name_check" {
   type        = bool
 }
 variable "kv_resource_group" {
-  description = "Keyvault resource group name"
+  description = "Key Vault resource group name"
   type        = string
 }
