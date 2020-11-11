@@ -33,7 +33,7 @@ variable "enable_ssl" {
   type        = bool
 }
 variable "ssl_mode" {
-  description = "Certificate source to encrypted HTTPS traffic with"
+  description = "Certificate source to encrypt HTTPS traffic with. eg. AzureKeyVault, FrontDoor"
   type        = string
 }
 variable "resource_group" {
