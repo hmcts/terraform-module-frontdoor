@@ -49,7 +49,7 @@ variable "oms_env" {
   type        = string
 }
 variable "certificate_name_check" {
-  description = "Enforce_backend_pools_certificate_name_check"
+  description = "Enforce backend pools certificate name check"
   type        = bool
 }
 variable "key_vault_resource_group" {
