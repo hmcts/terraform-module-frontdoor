@@ -20,5 +20,5 @@ frontends = [
     disabled_rules   = {}
   }
 ]
-common_tags = {}
+common_tags    = {}
 resource_group = ""
