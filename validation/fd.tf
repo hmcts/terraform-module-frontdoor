@@ -19,6 +19,6 @@ module "landing_zone" {
   certificate_key_vault_name = var.certificate_key_vault_name
   oms_env                    = var.oms_env
   certificate_name_check     = var.certificate_name_check
-  kv_resource_group          = var.kv_resource_group
+  key_vault_resource_group          = var.key_vault_resource_group
 }
 
