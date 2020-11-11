@@ -16,7 +16,7 @@ common_tags = {
   "automation"         = ""
   "costCentre"         = "10245117" // until we get a better one, this is the generic cft contingency one
 }
-kv_resource_group = "core-infra-sbox-rg"
+key_vault_resource_group = "core-infra-sbox-rg"
 resource_group    = "lz-sbox-rg"
 subscription_id   = "b72ab7b7-723f-4b18-b6f6-03b0f2c6a1bb"
 frontends = [
