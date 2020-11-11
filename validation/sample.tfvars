@@ -20,3 +20,4 @@ frontends = [
     disabled_rules   = {}
   }
 ]
+common_tags = {}
