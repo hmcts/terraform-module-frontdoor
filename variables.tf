@@ -7,7 +7,7 @@ variable "subscription" {
   type        = string
 }
 variable "project" {
-  description = "Enter Name of the project"
+  description = "Name of the project"
   type        = string
   default     = "hmcts"
 }
