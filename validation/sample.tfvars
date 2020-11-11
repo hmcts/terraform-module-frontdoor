@@ -6,10 +6,10 @@ enable_ssl                 = true
 ssl_mode                   = "AzureKeyVault"
 certificate_key_vault_name = "dtssharedservicessboxkv"
 certificate_name_check     = true
-data_subscription          = "a8140a9e-f1b0-481f-a4de-09e2ee23f7ab" 
+data_subscription          = "a8140a9e-f1b0-481f-a4de-09e2ee23f7ab"
 oms_env                    = "sandbox"
-kv_resource_group = "genesis-rg"
-subscription_id   = "a8140a9e-f1b0-481f-a4de-09e2ee23f7ab"
+kv_resource_group          = "genesis-rg"
+subscription_id            = "a8140a9e-f1b0-481f-a4de-09e2ee23f7ab"
 frontends = [
 
   {
