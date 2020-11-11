@@ -45,7 +45,7 @@ variable "certificate_key_vault_name" {
   type        = string
 }
 variable "oms_env" {
-  description = "Name of the Monitoring enviornment"
+  description = "Name of the log analytics workspace"
   type        = string
 }
 variable "certificate_name_check" {
