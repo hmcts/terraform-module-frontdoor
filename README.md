@@ -11,7 +11,6 @@ No requirements.
 | Name | Version |
 |------|---------|
 | azurerm | n/a |
-| azurerm.data | n/a |
 
 ## Inputs
 
@@ -24,9 +23,10 @@ No requirements.
 | env | Enter name of the environment to deploy frontdoor | `string` | n/a | yes |
 | frontends | Variable holds frontdoor configuration | `any` | n/a | yes |
 | key\_vault\_resource\_group | Key Vault resource group name | `string` | n/a | yes |
-| location | Enter Azure location to deploy the resource | `string` | `"UK South"` | no |
+| location | Azure location to deploy the resource | `string` | `"UK South"` | no |
+| log\_analytics\_workspace\_id | Enter log analytics workspace id | `string` | n/a | yes |
 | oms\_env | Name of the log analytics workspace | `string` | n/a | yes |
-| project | Enter Name of the project | `string` | `"hmcts"` | no |
+| project | Name of the project | `string` | n/a | yes |
 | resource\_group | Enter Resource Group Name | `string` | n/a | yes |
 | ssl\_mode | Certificate source to encrypt HTTPS traffic with. eg. AzureKeyVault, FrontDoor | `string` | n/a | yes |
 | subscription | Name of the subscription to deploy frontdoor, e.g. stg | `string` | n/a | yes |
