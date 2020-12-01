@@ -56,3 +56,9 @@ variable "key_vault_resource_group" {
   description = "Key Vault resource group name"
   type        = string
 }
+
+
+variable "log_analytics_workspace_id" {
+  description = "Enter log analytics workspace id"
+  type        = string
+}
