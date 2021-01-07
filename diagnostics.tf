@@ -1,9 +1,9 @@
-# data "azurerm_log_analytics_workspace" "main" {
-#   provider = azurerm.data
+data "azurerm_log_analytics_workspace" "main" {
+  provider = azurerm.data
 
-#   name                = "hmcts-${var.oms_env}"
-#   resource_group_name = "oms-automation"
-# }
+  name                = "hmcts-${var.oms_env}"
+  resource_group_name = "oms-automation"
+}
 
 data "azurerm_monitor_diagnostic_categories" "diagnostic_categories" {
   resource_id = azurerm_frontdoor.main.id
