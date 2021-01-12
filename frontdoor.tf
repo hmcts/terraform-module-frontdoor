@@ -4,11 +4,6 @@ resource "azurerm_frontdoor" "main" {
   enforce_backend_pools_certificate_name_check = var.certificate_name_check
   friendly_name                                = "${var.project}-${var.env}"
 
-  # timeouts {
-  #   read   = "4h"
-  #   update = "4h"
-  # }
-
   ######## Defaults ########
   frontend_endpoint {
     name                              = "${var.project}-${var.env}-azurefd-net"
