@@ -22,7 +22,7 @@ variable "common_tags" {
 }
 variable "frontends" {
   description = "Variable holds frontdoor configuration"
-  type        = any
+  # type        = any
 }
 variable "subscription_id" {
   description = "Enter Subscription ID"
