@@ -91,7 +91,7 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "backend_pool_load_balancing" {
     iterator = host
-    for_each = [ 
+    for_each = [
       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
     ]
     content {
@@ -104,7 +104,7 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "backend_pool_health_probe" {
     iterator = host
-    for_each = [ 
+    for_each = [
       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
     ]
     content {
@@ -117,7 +117,7 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "backend_pool" {
     iterator = host
-    for_each = [ 
+    for_each = [
       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
     ]
     content {
