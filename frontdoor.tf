@@ -145,7 +145,7 @@ resource "azurerm_frontdoor" "main" {
     for_each = var.frontends
     content {
       name               = host.value["name"]
-      accepted_protocols = lookup(host.value, "enable_ssl", true) ? ["Http", "Https"] : ["Http"]
+      accepted_protocols = ["Http", "Https"]
       patterns_to_match  = lookup(host.value, "url_patterns", ["/*"])
       frontend_endpoints = [host.value["name"]]
 
