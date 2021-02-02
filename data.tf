@@ -13,3 +13,7 @@ data "azurerm_key_vault_secret" "certificate" {
 }
 
 data "azurerm_client_config" "current" {}
+
+data "template_file" "rulesengine" {
+  template = file("${path.module}/templates/rulesEngine.json")
+}
