@@ -120,7 +120,6 @@ resource "azurerm_frontdoor" "main" {
     for_each = [ 
       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
     ]
-    for_each = var.frontends
     content {
       name = host.value["name"]
       dynamic "backend" {
