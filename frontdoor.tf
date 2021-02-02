@@ -91,7 +91,9 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "backend_pool_load_balancing" {
     iterator = host
-    for_each = var.frontends
+    for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
+    ]
     content {
       name                            = "loadBalancingSettings-${host.value["name"]}"
       sample_size                     = 4
@@ -102,7 +104,9 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "backend_pool_health_probe" {
     iterator = host
-    for_each = var.frontends
+    for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
+    ]
     content {
       name                = "healthProbeSettings-${host.value["name"]}"
       interval_in_seconds = 120
@@ -113,7 +117,9 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "backend_pool" {
     iterator = host
-    for_each = var.frontends
+    for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
+    ]
     content {
       name = host.value["name"]
       dynamic "backend" {
@@ -145,7 +151,7 @@ resource "azurerm_frontdoor" "main" {
 
       forwarding_configuration {
         forwarding_protocol                   = lookup(host.value, "forwarding_protocol", "HttpOnly")
-        backend_pool_name                     = host.value["name"]
+        backend_pool_name                     = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
         cache_enabled                         = lookup(host.value, "cache_enabled", "true")
         cache_query_parameter_strip_directive = "StripNone"
         cache_use_dynamic_compression         = false
