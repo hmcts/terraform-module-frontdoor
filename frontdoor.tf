@@ -37,7 +37,7 @@ resource "azurerm_frontdoor" "main" {
   routing_rule {
     name               = "defaultRouting"
     accepted_protocols = ["Http", "Https"]
-    patterns_to_match  = ["/*"]
+    patterns_to_match  = ["/*", "/EFTClient/Account/Login.htm"]
     frontend_endpoints = ["${var.project}-${var.env}-azurefd-net"]
     forwarding_configuration {
       forwarding_protocol = "MatchRequest"
@@ -128,7 +128,7 @@ resource "azurerm_frontdoor" "main" {
         content {
           host_header = lookup(host.value, "host_header", host.value["custom_domain"])
           address     = domain.value
-          http_port   = 80
+          http_port   = lookup(host.value, "uniquehttpport", []) == [] ? 80 : host.value["uniquehttpport"]
           https_port  = 443
           priority    = 1
           weight      = 50
