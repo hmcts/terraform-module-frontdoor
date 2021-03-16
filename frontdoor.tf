@@ -37,7 +37,7 @@ resource "azurerm_frontdoor" "main" {
   routing_rule {
     name               = "defaultRouting"
     accepted_protocols = ["Http", "Https"]
-    patterns_to_match  = ["/*", "/EFTClient/Account/Login.htm"]
+    patterns_to_match  = ["/*"]
     frontend_endpoints = ["${var.project}-${var.env}-azurefd-net"]
     forwarding_configuration {
       forwarding_protocol = "MatchRequest"
