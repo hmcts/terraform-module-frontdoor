@@ -128,7 +128,7 @@ resource "azurerm_frontdoor" "main" {
         content {
           host_header = lookup(host.value, "host_header", host.value["custom_domain"])
           address     = domain.value
-          http_port   = 80
+          http_port   = lookup(host.value, "http_port", 80)
           https_port  = 443
           priority    = 1
           weight      = 50
