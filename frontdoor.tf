@@ -168,7 +168,7 @@ resource "azurerm_frontdoor" "main" {
     content {
       name               = "${host.value["name"]}HttpsRedirect"
       accepted_protocols = ["Http"]
-      patterns_to_match  = ["/*"]
+      patterns_to_match  = lookup(host.value, "https_redirect_url_patterns", ["/*"])
       frontend_endpoints = [host.value["name"]]
 
       redirect_configuration {
