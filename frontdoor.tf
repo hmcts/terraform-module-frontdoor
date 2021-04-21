@@ -52,7 +52,6 @@ resource "azurerm_frontdoor" "main" {
     content {
       name                                    = host.value["name"]
       host_name                               = host.value["custom_domain"]
-      web_application_firewall_policy_link_id = "/subscriptions/${var.subscription_id}/resourcegroups/${var.resource_group}/providers/Microsoft.Network/frontdoorWebApplicationFirewallPolicies/${replace(host.value["name"], "-", "")}${replace(var.env, "-", "")}"
     }
   }
 
