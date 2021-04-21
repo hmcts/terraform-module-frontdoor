@@ -52,6 +52,7 @@ resource "azurerm_frontdoor" "main" {
     content {
       name                                    = host.value["name"]
       host_name                               = host.value["custom_domain"]
+      web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.custom[host.value["name"]].id
     }
   }
 
@@ -179,5 +180,5 @@ resource "azurerm_frontdoor" "main" {
 
   tags = var.common_tags
 
-  depends_on = [azurerm_key_vault_access_policy.frontdoor_kv_access]
+  depends_on = [azurerm_frontdoor_firewall_policy.custom, azurerm_key_vault_access_policy.frontdoor_kv_access]
 }
