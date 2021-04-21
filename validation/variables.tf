@@ -28,10 +28,7 @@ variable "subscription_id" {
   description = "Enter ID of control Subscription"
   type        = string
 }
-variable "enable_ssl" {
-  description = "Enable SSL"
-  type        = bool
-}
+
 variable "ssl_mode" {
   description = "Certificate source to encrypted HTTPS traffic with"
   type        = string

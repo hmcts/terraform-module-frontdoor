@@ -28,10 +28,6 @@ variable "subscription_id" {
   description = "Enter Subscription ID"
   type        = string
 }
-variable "enable_ssl" {
-  description = "Enable SSL"
-  type        = bool
-}
 variable "ssl_mode" {
   description = "Certificate source to encrypt HTTPS traffic with. eg. AzureKeyVault, FrontDoor"
   type        = string
@@ -57,6 +53,11 @@ variable "key_vault_resource_group" {
   type        = string
 }
 
+variable "add_access_policy" {
+  default     = true
+  type        = bool
+  description = "Whether to add an access policy for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription"
+}
 
 variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
