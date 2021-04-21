@@ -28,10 +28,6 @@ variable "subscription_id" {
   description = "Enter Subscription ID"
   type        = string
 }
-variable "enable_ssl" {
-  description = "Enable SSL"
-  type        = bool
-}
 variable "ssl_mode" {
   description = "Certificate source to encrypt HTTPS traffic with. eg. AzureKeyVault, FrontDoor"
   type        = string

@@ -12,7 +12,6 @@ module "landing_zone" {
   project                    = var.project
   location                   = var.location
   frontends                  = var.frontends
-  enable_ssl                 = var.enable_ssl
   ssl_mode                   = var.ssl_mode
   resource_group             = var.resource_group
   subscription_id            = var.subscription_id
