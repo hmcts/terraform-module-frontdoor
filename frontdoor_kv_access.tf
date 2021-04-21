@@ -1,5 +1,5 @@
 resource "azurerm_key_vault_access_policy" "frontdoor_kv_access" {
-  count = var.add_access_policy == true ? 1 : 0
+  count        = var.add_access_policy == true ? 1 : 0
   key_vault_id = data.azurerm_key_vault.certificate_vault.id
 
   object_id = "0a7e9367-4349-4b24-974a-bfa7b23a38fc"
