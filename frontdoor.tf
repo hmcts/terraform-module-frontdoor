@@ -197,6 +197,8 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
     azure_key_vault_certificate_secret_version = data.azurerm_key_vault_secret.certificate[each.value["name"]].version
     azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.certificate_vault.id
   }
+
+  depends_on = [azurerm_frontdoor.main]
 }
 
 // TODO www redirect
