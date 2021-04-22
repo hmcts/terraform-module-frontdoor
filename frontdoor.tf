@@ -188,7 +188,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
     frontend.name => frontend
   }
 
-  frontend_endpoint_id              = azurerm_frontdoor.main.frontend_endpoint[each.value["name"]]
+  frontend_endpoint_id              = azurerm_frontdoor.main.frontend_endpoints[each.value["name"]]
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
