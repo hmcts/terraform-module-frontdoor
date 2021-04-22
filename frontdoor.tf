@@ -184,11 +184,9 @@ resource "azurerm_frontdoor" "main" {
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "https" {
-  for_each = { for frontend in var.frontends :
-    frontend.name => frontend
-  }
+  for_each = azurerm_frontdoor.main.frontend_endpoints
 
-  frontend_endpoint_id              = azurerm_frontdoor.main.frontend_endpoints[each.value["name"]]
+  frontend_endpoint_id              = each.value
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
