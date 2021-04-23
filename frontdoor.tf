@@ -197,8 +197,22 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
     azure_key_vault_certificate_secret_version = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).version
     azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.certificate_vault.id
   }
+}
 
-  depends_on = [azurerm_frontdoor.main]
+resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
+  for_each = toset([
+  for endpoint in azurerm_frontdoor.main.frontend_endpoints: endpoint if endpoint != "${azurerm_frontdoor.main.id}/frontendEndpoints/${var.project}-${var.env}-azurefd-net"
+  ])
+
+  frontend_endpoint_id              = each.value
+  custom_https_provisioning_enabled = true
+
+  custom_https_configuration {
+    certificate_source                         = "AzureKeyVault"
+    azure_key_vault_certificate_secret_name    = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).name
+    azure_key_vault_certificate_secret_version = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).version
+    azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.certificate_vault.id
+  }
 }
 
 // TODO www redirect
