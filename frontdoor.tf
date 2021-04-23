@@ -185,7 +185,7 @@ resource "azurerm_frontdoor" "main" {
 
 resource "azurerm_frontdoor_custom_https_configuration" "https" {
   for_each = toset([
-    for endpoint in azurerm_frontdoor.main.frontend_endpoints: endpoint if (replace(endpoint, "azurefd-net", "") != endpoint)
+    for endpoint in azurerm_frontdoor.main.frontend_endpoints: endpoint if endpoint != replace(endpoint, "azurefd-net", "")
   ])
 
   frontend_endpoint_id              = each.value
