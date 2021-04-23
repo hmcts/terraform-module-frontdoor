@@ -189,7 +189,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
     if lookup(frontend, "enable_ssl", true)
   }
 
-  frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontdoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
+  frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontDoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
