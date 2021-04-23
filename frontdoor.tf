@@ -6,8 +6,8 @@ resource "azurerm_frontdoor" "main" {
 
   ######## Defaults ########
   frontend_endpoint {
-    name                              = "${var.project}-${var.env}-azurefd-net"
-    host_name                         = "${var.project}-${var.env}.azurefd.net"
+    name      = "${var.project}-${var.env}-azurefd-net"
+    host_name = "${var.project}-${var.env}.azurefd.net"
   }
 
   backend_pool_load_balancing {
@@ -63,8 +63,8 @@ resource "azurerm_frontdoor" "main" {
       for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
     ]
     content {
-      name                              = "www${host.value["name"]}"
-      host_name                         = "www.${host.value["custom_domain"]}"
+      name      = "www${host.value["name"]}"
+      host_name = "www.${host.value["custom_domain"]}"
     }
   }
 
@@ -202,20 +202,21 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
   depends_on = [azurerm_frontdoor.main]
 }
 
-//resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
-//  for_each = toset([
-//  for endpoint in azurerm_frontdoor.main.frontend_endpoints: endpoint if endpoint != "${azurerm_frontdoor.main.id}/frontendEndpoints/${var.project}-${var.env}-azurefd-net"
-//  ])
-//
-//  frontend_endpoint_id              = each.value
-//  custom_https_provisioning_enabled = true
-//
-//  custom_https_configuration {
-//    certificate_source                         = "AzureKeyVault"
-//    azure_key_vault_certificate_secret_name    = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).name
-//    azure_key_vault_certificate_secret_version = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).version
-//    azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.certificate_vault.id
-//  }
-//}
+resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
+  for_each = { for frontend in var.frontends :
+    frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
 
-// TODO www redirect
+  frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontDoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
+  custom_https_provisioning_enabled = true
+
+  custom_https_configuration {
+    certificate_source                         = var.ssl_mode
+    azure_key_vault_certificate_secret_name    = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
+    azure_key_vault_certificate_secret_version = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].version : null
+    azure_key_vault_certificate_vault_id       = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
+  }
+
+  depends_on = [azurerm_frontdoor.main]
+}
