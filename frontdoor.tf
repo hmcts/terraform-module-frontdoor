@@ -4,47 +4,6 @@ resource "azurerm_frontdoor" "main" {
   enforce_backend_pools_certificate_name_check = var.certificate_name_check
   friendly_name                                = "${var.project}-${var.env}"
 
-  ######## Defaults ########
-  frontend_endpoint {
-    name                              = "${var.project}-${var.env}-azurefd-net"
-    host_name                         = "${var.project}-${var.env}.azurefd.net"
-  }
-
-  backend_pool_load_balancing {
-    name = "defaultLoadBalancing"
-  }
-
-  backend_pool_health_probe {
-    name = "defaultHealthProbe"
-  }
-
-  # Default backend
-  backend_pool {
-    name = "defaultBackend"
-    backend {
-      host_header = "www.bing.com"
-      address     = "www.bing.com"
-      http_port   = 80
-      https_port  = 443
-    }
-
-    load_balancing_name = "defaultLoadBalancing"
-    health_probe_name   = "defaultHealthProbe"
-  }
-
-  # Defualt routing rule for default frontend host
-  routing_rule {
-    name               = "defaultRouting"
-    accepted_protocols = ["Http", "Https"]
-    patterns_to_match  = ["/*"]
-    frontend_endpoints = ["${var.project}-${var.env}-azurefd-net"]
-    forwarding_configuration {
-      forwarding_protocol = "MatchRequest"
-      backend_pool_name   = "defaultBackend"
-    }
-  }
-  ######## End defaults ########
-
   ######## Regular frontends ########
   dynamic "frontend_endpoint" {
     iterator = host
@@ -184,9 +143,7 @@ resource "azurerm_frontdoor" "main" {
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "https" {
-  for_each = toset([
-    for endpoint in azurerm_frontdoor.main.frontend_endpoints: endpoint if endpoint != "${azurerm_frontdoor.main.id}/frontendEndpoints/${var.project}-${var.env}-azurefd-net"
-  ])
+  for_each = azurerm_frontdoor.main.frontend_endpoints
 
   frontend_endpoint_id              = each.value
   custom_https_provisioning_enabled = true
@@ -197,8 +154,6 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
     azure_key_vault_certificate_secret_version = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).version
     azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.certificate_vault.id
   }
-
-  depends_on = [azurerm_frontdoor.main]
 }
 
 // TODO www redirect
