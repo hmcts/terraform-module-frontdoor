@@ -6,9 +6,8 @@ resource "azurerm_frontdoor" "main" {
 
   ######## Defaults ########
   frontend_endpoint {
-    name                              = "${var.project}-${var.env}-azurefd-net"
-    host_name                         = "${var.project}-${var.env}.azurefd.net"
-    custom_https_provisioning_enabled = false
+    name      = "${var.project}-${var.env}-azurefd-net"
+    host_name = "${var.project}-${var.env}.azurefd.net"
   }
 
   backend_pool_load_balancing {
@@ -53,16 +52,7 @@ resource "azurerm_frontdoor" "main" {
     content {
       name                                    = host.value["name"]
       host_name                               = host.value["custom_domain"]
-      custom_https_provisioning_enabled       = lookup(host.value, "enable_ssl", true)
       web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.custom[host.value["name"]].id
-      dynamic "custom_https_configuration" {
-        for_each = lookup(host.value, "enable_ssl", true) ? [1] : []
-        content {
-          certificate_source                      = var.ssl_mode
-          azure_key_vault_certificate_vault_id    = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
-          azure_key_vault_certificate_secret_name = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[host.value["name"]].name : null
-        }
-      }
     }
   }
 
@@ -73,18 +63,8 @@ resource "azurerm_frontdoor" "main" {
       for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
     ]
     content {
-      name                              = "www${host.value["name"]}"
-      host_name                         = "www.${host.value["custom_domain"]}"
-      custom_https_provisioning_enabled = lookup(host.value, "enable_ssl", true)
-      dynamic "custom_https_configuration" {
-        for_each = lookup(host.value, "enable_ssl", true) ? [1] : []
-        content {
-          certificate_source                         = var.ssl_mode
-          azure_key_vault_certificate_vault_id       = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
-          azure_key_vault_certificate_secret_name    = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[host.value["name"]].name : null
-          azure_key_vault_certificate_secret_version = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[host.value["name"]].version : null
-        }
-      }
+      name      = "www${host.value["name"]}"
+      host_name = "www.${host.value["custom_domain"]}"
     }
   }
 
@@ -201,4 +181,44 @@ resource "azurerm_frontdoor" "main" {
   tags = var.common_tags
 
   depends_on = [azurerm_frontdoor_firewall_policy.custom, azurerm_key_vault_access_policy.frontdoor_kv_access]
+}
+
+resource "azurerm_frontdoor_custom_https_configuration" "https" {
+  for_each = { for frontend in var.frontends :
+    frontend.name => frontend
+    if lookup(frontend, "enable_ssl", true)
+  }
+
+  frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontDoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
+  custom_https_provisioning_enabled = true
+
+  custom_https_configuration {
+    certificate_source                      = var.ssl_mode
+    azure_key_vault_certificate_secret_name = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
+    // TODO remove version once https://github.com/terraform-providers/terraform-provider-azurerm/pull/11310 is released
+    azure_key_vault_certificate_secret_version = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].version : null
+    azure_key_vault_certificate_vault_id       = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
+  }
+
+  depends_on = [azurerm_frontdoor.main]
+}
+
+resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
+  for_each = { for frontend in var.frontends :
+    frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
+
+  frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontDoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
+  custom_https_provisioning_enabled = true
+
+  custom_https_configuration {
+    certificate_source                      = var.ssl_mode
+    azure_key_vault_certificate_secret_name = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
+    // TODO remove version once https://github.com/terraform-providers/terraform-provider-azurerm/pull/11310 is released
+    azure_key_vault_certificate_secret_version = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].version : null
+    azure_key_vault_certificate_vault_id       = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
+  }
+
+  depends_on = [azurerm_frontdoor.main]
 }
