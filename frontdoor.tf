@@ -187,13 +187,13 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
   for_each = azurerm_frontdoor.main.frontend_endpoints
 
   frontend_endpoint_id              = each.value
-  custom_https_provisioning_enabled = true
+  custom_https_provisioning_enabled = each.value != "${var.project}-${var.env}-azurefd-net"
 
   custom_https_configuration {
     certificate_source                         = "AzureKeyVault"
-    azure_key_vault_certificate_secret_name    = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).name
-    azure_key_vault_certificate_secret_version = lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).version
-    azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.certificate_vault.id
+    azure_key_vault_certificate_secret_name    = each.value != "${var.project}-${var.env}-azurefd-net" ? lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).name : null
+    azure_key_vault_certificate_secret_version = each.value != "${var.project}-${var.env}-azurefd-net" ? lookup(data.azurerm_key_vault_secret.certificate, split("/", each.value)[length(split("/", each.value)) - 1]).version : null
+    azure_key_vault_certificate_vault_id       = each.value != "${var.project}-${var.env}-azurefd-net" ? data.azurerm_key_vault.certificate_vault.id : null
   }
 
   depends_on = [azurerm_frontdoor.main]
