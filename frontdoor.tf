@@ -199,7 +199,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
     azure_key_vault_certificate_vault_id       = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
   }
 
-  depends_on = [azurerm_frontdoor.main.frontend_endpoints]
+  depends_on = [azurerm_frontdoor.main]
 }
 
 //resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
