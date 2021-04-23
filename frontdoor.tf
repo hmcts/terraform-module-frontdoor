@@ -191,8 +191,8 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
 
   custom_https_configuration {
     certificate_source                         = "AzureKeyVault"
-    azure_key_vault_certificate_secret_name    = data.azurerm_key_vault_secret.certificate[split("/", each.value)[length(split("/", each.value)) - 1]].name
-    azure_key_vault_certificate_secret_version = data.azurerm_key_vault_secret.certificate[split("/", each.value)[length(split("/", each.value)) - 1]].version
+    azure_key_vault_certificate_secret_name    = lookup(data.azurerm_key_vault_secret.certificate, [split("/", each.value)[length(split("/", each.value)) - 1]]).name
+    azure_key_vault_certificate_secret_version = lookup(data.azurerm_key_vault_secret.certificate, [split("/", each.value)[length(split("/", each.value)) - 1]]).version
     azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.certificate_vault.id
   }
 
