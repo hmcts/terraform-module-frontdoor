@@ -4,6 +4,7 @@ resource "azurerm_frontdoor_firewall_policy" "custom" {
   }
   name                = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}"
   resource_group_name = var.resource_group
+  tags                = var.common_tags
   enabled             = true
   mode                = lookup(each.value, "mode", "Prevention")
 
