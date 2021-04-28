@@ -195,8 +195,6 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
   custom_https_configuration {
     certificate_source                      = var.ssl_mode
     azure_key_vault_certificate_secret_name = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
-    // TODO remove version once https://github.com/terraform-providers/terraform-provider-azurerm/pull/11310 is released
-    azure_key_vault_certificate_secret_version = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].version : null
     azure_key_vault_certificate_vault_id       = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
   }
 
@@ -215,8 +213,6 @@ resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
   custom_https_configuration {
     certificate_source                      = var.ssl_mode
     azure_key_vault_certificate_secret_name = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
-    // TODO remove version once https://github.com/terraform-providers/terraform-provider-azurerm/pull/11310 is released
-    azure_key_vault_certificate_secret_version = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].version : null
     azure_key_vault_certificate_vault_id       = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
   }
 
