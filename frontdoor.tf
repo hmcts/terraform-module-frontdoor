@@ -207,7 +207,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
     if lookup(frontend, "www_redirect", false)
   }
 
-  frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontDoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
+  frontend_endpoint_id              = "${azurerm_frontdoor.main.id}/frontendEndpoints/${each.value["name"]}"
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
@@ -215,6 +215,4 @@ resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
     azure_key_vault_certificate_secret_name = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
     azure_key_vault_certificate_vault_id    = var.ssl_mode == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
   }
-
-  depends_on = [azurerm_frontdoor.main]
 }
