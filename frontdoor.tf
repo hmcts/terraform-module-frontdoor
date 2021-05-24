@@ -6,8 +6,8 @@ resource "azurerm_frontdoor" "main" {
 
   ######## Defaults ########
   frontend_endpoint {
-    name                         = "${var.project}-${var.env}-azurefd-net"
-    host_name                    = "${var.project}-${var.env}.azurefd.net"
+    name      = "${var.project}-${var.env}-azurefd-net"
+    host_name = "${var.project}-${var.env}.azurefd.net"
   }
 
   backend_pool_load_balancing {
@@ -53,6 +53,10 @@ resource "azurerm_frontdoor" "main" {
       name                                    = host.value["name"]
       host_name                               = host.value["custom_domain"]
       web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.custom[host.value["name"]].id
+      // WARNING: avoid this at all costs and try to keep your application stateless.
+      session_affinity_enabled                = host.value["session_affinity"]
+      // WARNING: avoid session affinity at all costs and try to keep your application stateless.
+      session_affinity_ttl_seconds            = host.value["session_affinity_ttl_seconds"]
     }
   }
 
@@ -65,10 +69,6 @@ resource "azurerm_frontdoor" "main" {
     content {
       name                         = "www${host.value["name"]}"
       host_name                    = "www.${host.value["custom_domain"]}"
-      // WARNING: avoid this at all costs and try to keep your application stateless.
-      session_affinity_enabled     = host.value["session_affinity"]
-      // WARNING: avoid session affinity at all costs and try to keep your application stateless.
-      session_affinity_ttl_seconds = host.value["session_affinity_ttl_seconds"]
     }
   }
 
