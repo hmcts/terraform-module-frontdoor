@@ -8,10 +8,6 @@ resource "azurerm_frontdoor" "main" {
   frontend_endpoint {
     name                         = "${var.project}-${var.env}-azurefd-net"
     host_name                    = "${var.project}-${var.env}.azurefd.net"
-    // WARNING: avoid this at all costs and try to keep your application stateless.
-    session_affinity_enabled     = var.session_affinity_enabled
-    // WARNING: avoid session affinity at all costs and try to keep your application stateless.
-    session_affinity_ttl_seconds = var.session_affinity_ttl_seconds
   }
 
   backend_pool_load_balancing {
@@ -67,8 +63,12 @@ resource "azurerm_frontdoor" "main" {
       for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
     ]
     content {
-      name      = "www${host.value["name"]}"
-      host_name = "www.${host.value["custom_domain"]}"
+      name                         = "www${host.value["name"]}"
+      host_name                    = "www.${host.value["custom_domain"]}"
+      // WARNING: avoid this at all costs and try to keep your application stateless.
+      session_affinity_enabled     = host.value["session_affinity"]
+      // WARNING: avoid session affinity at all costs and try to keep your application stateless.
+      session_affinity_ttl_seconds = host.value["session_affinity_ttl_seconds"]
     }
   }
 
