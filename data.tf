@@ -7,6 +7,7 @@ data "azurerm_key_vault" "certificate_vault" {
 data "azurerm_key_vault_secret" "certificate" {
   for_each = { for frontend in var.frontends :
     frontend.name => frontend
+    if lookup(frontend, "ssl_mode", var.ssl_mode) == "AzureKeyVault"
   }
   name         = lookup(each.value, "certificate_name")
   key_vault_id = data.azurerm_key_vault.certificate_vault.id
