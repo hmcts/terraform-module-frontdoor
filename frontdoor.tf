@@ -6,8 +6,12 @@ resource "azurerm_frontdoor" "main" {
 
   ######## Defaults ########
   frontend_endpoint {
-    name      = "${var.project}-${var.env}-azurefd-net"
-    host_name = "${var.project}-${var.env}.azurefd.net"
+    name                         = "${var.project}-${var.env}-azurefd-net"
+    host_name                    = "${var.project}-${var.env}.azurefd.net"
+    // WARNING: avoid this at all costs and try to keep your application stateless.
+    session_affinity_enabled     = var.session_affinity_enabled
+    // WARNING: avoid session affinity at all costs and try to keep your application stateless.
+    session_affinity_ttl_seconds = var.session_affinity_ttl_seconds
   }
 
   backend_pool_load_balancing {

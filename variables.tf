@@ -63,3 +63,16 @@ variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
   type        = string
 }
+
+// WARNING: avoid this at all costs and try to keep your application stateless.
+variable "session_affinity_enabled" {
+  description = "WARNING: enable session affinity on this host. Avoid this at all costs and try to keep your application stateless."
+  type        = bool
+  default     = false
+}
+// WARNING: avoid session affinity at all costs and try to keep your application stateless.
+variable "session_affinity_ttl_seconds" {
+  description = "WARNING: The TTL to use in seconds for session affinity. Avoid session affinity at all costs and try to keep your application stateless."
+  type        = number
+  default     = 0
+}
