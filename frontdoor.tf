@@ -54,9 +54,9 @@ resource "azurerm_frontdoor" "main" {
       host_name                               = host.value["custom_domain"]
       web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.custom[host.value["name"]].id
       // WARNING: avoid this at all costs and try to keep your application stateless.
-      session_affinity_enabled                = host.value["session_affinity"]
+      session_affinity_enabled                = lookup(host.value, "session_affinity", false)
       // WARNING: avoid session affinity at all costs and try to keep your application stateless.
-      session_affinity_ttl_seconds            = host.value["session_affinity_ttl_seconds"]
+      session_affinity_ttl_seconds            = lookup(host.value, "session_affinity_ttl_seconds", 0)
     }
   }
 
