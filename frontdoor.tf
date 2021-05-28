@@ -212,7 +212,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
     if lookup(frontend, "www_redirect", false)
   }
 
-  frontend_endpoint_id              = "${azurerm_frontdoor.main.id}/frontendEndpoints/${each.value["name"]}"
+  frontend_endpoint_id              = "${azurerm_frontdoor.main.id}/frontendEndpoints/www${each.value["name"]}"
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
