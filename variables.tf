@@ -59,6 +59,12 @@ variable "add_access_policy" {
   description = "Whether to add an access policy for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription"
 }
 
+variable "add_access_policy_role" {
+  default     = true
+  type        = bool
+  description = "Whether to add a role assignment for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription"
+}
+
 variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
   type        = string
