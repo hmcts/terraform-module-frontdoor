@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "frontdoor_name": {
+            "type": "string"
+        },
+        "ruleName": {
+            "type": "string"
+        },
+        "ruleEngine_name": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "microsoft.network/frontdoors/rulesengines",
+            "apiVersion": "2020-05-01",
+            "name": "[concat(parameters('frontdoor_name'), '/', parameters('ruleEngine_name'))]",
+            "properties": {
+              "resourceState": "Enabled",
+              "rules": [
+              {
+                "priority": 0,
+                "name": "[parameters('ruleName')]",
+                "matchProcessingBehavior": "Stop",
+                "action": 
+                  {
+                    "routeConfigurationOverride": {
+                        "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorRedirectConfiguration",
+                        "redirectProtocol": "HttpsOnly",
+                        "redirectType": "Moved"
+                    }
+                  },
+                "matchConditions": [
+                  {
+                    "rulesEngineMatchValue": ["HTTP"],
+                    "rulesEngineMatchVariable": "RequestScheme",
+                    "rulesEngineOperator": "Equal",
+                    "negateCondition": false
+                  }
+                ]
+              }
+            ]
+          }
+        }
+    ]
+}
