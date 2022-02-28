@@ -188,7 +188,7 @@ resource "azurerm_frontdoor" "main" {
 }
 
 output x {
-  value = { for v in azurerm_frontdoor.main.frontend_endpoints: v.name => v.fqdn }
+  value = { for v in azurerm_frontdoor.main.dynamic.frontend_endpoint: v.name => v.fqdn }
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "https" {
