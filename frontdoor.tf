@@ -197,7 +197,6 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
   custom_https_provisioning_enabled = true
 
   dynamic "custom_https_configuration" {
-    for_each = [ for frontend in var.frontends : frontend if lookup(frontend, "enable_ssl", true) ]
     content {
       certificate_source = lookup(each.value, "ssl_mode", var.ssl_mode)
       azure_key_vault_certificate_secret_name = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
