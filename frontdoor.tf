@@ -187,6 +187,10 @@ resource "azurerm_frontdoor" "main" {
   depends_on = [azurerm_frontdoor_firewall_policy.custom, azurerm_key_vault_access_policy.frontdoor_kv_access]
 }
 
+output x {
+  value = { for v in azurerm_frontdoor.main.frontend_endpoints: v.name => v.fqdn }
+}
+
 resource "azurerm_frontdoor_custom_https_configuration" "https" {
   for_each = { for frontend in var.frontends :
     frontend.name => frontend
@@ -196,13 +200,9 @@ resource "azurerm_frontdoor_custom_https_configuration" "https" {
   frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontDoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
   custom_https_provisioning_enabled = true
 
-  dynamic "custom_https_configuration" {
-    content {
-      certificate_source = lookup(each.value, "ssl_mode", var.ssl_mode)
-      azure_key_vault_certificate_secret_name = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
-      azure_key_vault_certificate_vault_id = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
-    }
-  }
+    certificate_source = lookup(each.value, "ssl_mode", var.ssl_mode)
+    azure_key_vault_certificate_secret_name = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
+    azure_key_vault_certificate_vault_id = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
 
   depends_on = [azurerm_frontdoor.main]
 }
