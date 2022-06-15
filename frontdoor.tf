@@ -1,8 +1,7 @@
 resource "azurerm_frontdoor" "main" {
-  name                                         = "${var.project}-${var.env}"
-  resource_group_name                          = var.resource_group
-  enforce_backend_pools_certificate_name_check = var.certificate_name_check
-  friendly_name                                = "${var.project}-${var.env}"
+  name                = "${var.project}-${var.env}"
+  resource_group_name = var.resource_group
+  friendly_name       = "${var.project}-${var.env}"
 
   ######## Defaults ########
   frontend_endpoint {
@@ -30,6 +29,10 @@ resource "azurerm_frontdoor" "main" {
 
     load_balancing_name = "defaultLoadBalancing"
     health_probe_name   = "defaultHealthProbe"
+  }
+
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = var.certificate_name_check
   }
 
   # Defualt routing rule for default frontend host
