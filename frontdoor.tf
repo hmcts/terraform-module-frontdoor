@@ -128,7 +128,7 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "routing_rule" {
     iterator = host
-        for_each = [
+    for_each = [
       for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", []) != [] ? true : false
     ]
     content {
@@ -148,9 +148,9 @@ resource "azurerm_frontdoor" "main" {
     }
   }
 
-    dynamic "routing_rule" {
+  dynamic "routing_rule" {
     iterator = host
-        for_each = [
+    for_each = [
       for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", false)
     ]
     content {
@@ -160,10 +160,10 @@ resource "azurerm_frontdoor" "main" {
       frontend_endpoints = [host.value["name"]]
 
       forwarding_configuration {
-        forwarding_protocol                   = lookup(host.value, "forwarding_protocol", "HttpOnly")
-        backend_pool_name                     = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
-        cache_use_dynamic_compression         = false
-        custom_forwarding_path                = ""
+        forwarding_protocol           = lookup(host.value, "forwarding_protocol", "HttpOnly")
+        backend_pool_name             = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
+        cache_use_dynamic_compression = false
+        custom_forwarding_path        = ""
       }
     }
   }
