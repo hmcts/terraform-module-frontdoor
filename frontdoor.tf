@@ -129,7 +129,7 @@ resource "azurerm_frontdoor" "main" {
   dynamic "routing_rule" {
     iterator = host
     for_each = [
-      for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", false) ? false : true
+      for frontend in var.frontends : frontend if !contains(keys(map), cache_enabled)
     ]
     content {
       name               = host.value["name"]
