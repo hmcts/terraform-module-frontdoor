@@ -141,7 +141,7 @@ resource "azurerm_frontdoor" "main" {
       forwarding_configuration {
         forwarding_protocol                   = lookup(host.value, "forwarding_protocol", "HttpOnly")
         backend_pool_name                     = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
-        cache_enabled                         = true
+        cache_enabled                         = lookup(host.value, "cache_enabled", "true")
         cache_query_parameter_strip_directive = "StripNone"
         cache_use_dynamic_compression         = false
         custom_forwarding_path                = ""
