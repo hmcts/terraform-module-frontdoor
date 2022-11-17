@@ -22,7 +22,7 @@ stages:
           - task: TerraformInstaller@0
             inputs:
               terraformVersion: ${{ variables.terraformVersion }}
-          - task: PowerShell@2
+          - task: PowerShell@2.210.0
             displayName: Run tests
             inputs:
               targetType: 'inline'
