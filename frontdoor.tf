@@ -150,7 +150,7 @@ resource "azurerm_frontdoor" "main" {
     # this routing rule will be added if cache_enabled is false
     iterator = host
     for_each = [
-      for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", false)
+      for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", []) != [] ? false : true
     ]
     content {
       name               = host.value["name"]
