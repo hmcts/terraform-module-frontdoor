@@ -126,9 +126,8 @@ resource "azurerm_frontdoor" "main" {
   dynamic "routing_rule" {
     # this routing rule will be added if cache_enabled is true
     iterator = host
-    for_each = [
-      for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", true)
-    ]
+    for_each = var.frontends
+
     content {
       name               = host.value["name"]
       accepted_protocols = lookup(host.value, "enable_ssl", true) ? ["Https"] : ["Http"]
