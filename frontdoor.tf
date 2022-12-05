@@ -124,8 +124,11 @@ resource "azurerm_frontdoor" "main" {
   }
 
   dynamic "routing_rule" {
+    # this routing rule will be added if cache_enabled is true
     iterator = host
-    for_each = var.frontends
+    for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", []) != [] ? true : false
+    ]
     content {
       name               = host.value["name"]
       accepted_protocols = lookup(host.value, "enable_ssl", true) ? ["Https"] : ["Http"]
@@ -135,10 +138,31 @@ resource "azurerm_frontdoor" "main" {
       forwarding_configuration {
         forwarding_protocol                   = lookup(host.value, "forwarding_protocol", "HttpOnly")
         backend_pool_name                     = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
-        cache_enabled                         = lookup(host.value, "cache_enabled", "true")
+        cache_enabled                         = true
         cache_query_parameter_strip_directive = "StripNone"
         cache_use_dynamic_compression         = false
         custom_forwarding_path                = ""
+      }
+    }
+  }
+
+  dynamic "routing_rule" {
+    # this routing rule will be added if cache_enabled is false
+    iterator = host
+    for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "cache_enabled", false)
+    ]
+    content {
+      name               = host.value["name"]
+      accepted_protocols = lookup(host.value, "enable_ssl", true) ? ["Https"] : ["Http"]
+      patterns_to_match  = lookup(host.value, "url_patterns", ["/*"])
+      frontend_endpoints = [host.value["name"]]
+
+      forwarding_configuration {
+        forwarding_protocol           = lookup(host.value, "forwarding_protocol", "HttpOnly")
+        backend_pool_name             = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
+        cache_use_dynamic_compression = false
+        custom_forwarding_path        = ""
       }
     }
   }
