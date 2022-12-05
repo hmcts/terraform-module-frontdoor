@@ -124,7 +124,6 @@ resource "azurerm_frontdoor" "main" {
   }
 
   dynamic "routing_rule" {
-    # this routing rule will be added if cache_enabled is true
     iterator = host
     for_each = var.frontends
 
