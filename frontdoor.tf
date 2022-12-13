@@ -1,10 +1,13 @@
 resource "azurerm_frontdoor" "main" {
-  name                                         = "${var.project}-${var.env}"
-  resource_group_name                          = var.resource_group
-  enforce_backend_pools_certificate_name_check = var.certificate_name_check
-  friendly_name                                = "${var.project}-${var.env}"
+  name                = "${var.project}-${var.env}"
+  resource_group_name = var.resource_group
+  friendly_name       = "${var.project}-${var.env}"
 
   ######## Defaults ########
+  backend_pool_settings {
+    enforce_backend_pools_certificate_name_check = var.certificate_name_check
+  }
+
   frontend_endpoint {
     name      = "${var.project}-${var.env}-azurefd-net"
     host_name = "${var.project}-${var.env}.azurefd.net"
@@ -126,6 +129,7 @@ resource "azurerm_frontdoor" "main" {
   dynamic "routing_rule" {
     iterator = host
     for_each = var.frontends
+
     content {
       name               = host.value["name"]
       accepted_protocols = lookup(host.value, "enable_ssl", true) ? ["Https"] : ["Http"]
@@ -136,7 +140,7 @@ resource "azurerm_frontdoor" "main" {
         forwarding_protocol                   = lookup(host.value, "forwarding_protocol", "HttpOnly")
         backend_pool_name                     = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
         cache_enabled                         = lookup(host.value, "cache_enabled", "true")
-        cache_query_parameter_strip_directive = "StripNone"
+        cache_query_parameter_strip_directive = lookup(host.value, "cache_enabled", []) == [] ? "StripNone" : "StripAll"
         cache_use_dynamic_compression         = false
         custom_forwarding_path                = ""
       }
