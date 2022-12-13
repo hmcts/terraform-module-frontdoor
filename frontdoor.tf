@@ -1,7 +1,7 @@
 resource "azurerm_frontdoor" "main" {
-  name                                         = "${var.project}-${var.env}"
-  resource_group_name                          = var.resource_group
-  friendly_name                                = "${var.project}-${var.env}"
+  name                = "${var.project}-${var.env}"
+  resource_group_name = var.resource_group
+  friendly_name       = "${var.project}-${var.env}"
 
   ######## Defaults ########
   backend_pool_settings {
