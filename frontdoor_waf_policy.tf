@@ -63,7 +63,7 @@ resource "azurerm_frontdoor_firewall_policy" "custom" {
           operator           = match_condition.value.operator
           negation_condition = match_condition.value.negation_condition
           match_values       = match_condition.value.match_values
-          transforms         = match_condition.value.transforms
+          transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
         }
       }
     }
