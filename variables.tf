@@ -2,10 +2,6 @@ variable "env" {
   description = "Enter name of the environment to deploy frontdoor"
   type        = string
 }
-variable "subscription" {
-  description = "Name of the subscription to deploy frontdoor, e.g. stg"
-  type        = string
-}
 variable "project" {
   description = "Name of the project"
   type        = string
@@ -25,7 +21,7 @@ variable "frontends" {
   type        = any
 }
 variable "subscription_id" {
-  description = "Enter Subscription ID"
+  description = "Enter ID of subscription frontdoor is deployed to"
   type        = string
 }
 variable "ssl_mode" {
