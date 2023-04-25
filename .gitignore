@@ -1,6 +1,8 @@
 .terraform
+.terraform.lock.hcl
 *.secrets
 .DS_Store
 *tfstate*
 *.swp
 .idea/*
+tfplan

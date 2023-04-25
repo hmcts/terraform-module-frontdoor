@@ -55,7 +55,7 @@ resource "azurerm_frontdoor" "main" {
     content {
       name                                    = host.value["name"]
       host_name                               = host.value["custom_domain"]
-      web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.custom[host.value["name"]].id
+      web_application_firewall_policy_link_id = lookup(host.value, "redirect", null) == null ? azurerm_frontdoor_firewall_policy.custom[host.value["name"]].id : null
       # WARNING: avoid this at all costs and try to keep your application stateless.
       session_affinity_enabled = lookup(host.value, "session_affinity", false)
       # WARNING: avoid session affinity at all costs and try to keep your application stateless.
@@ -128,7 +128,9 @@ resource "azurerm_frontdoor" "main" {
 
   dynamic "routing_rule" {
     iterator = host
-    for_each = var.frontends
+    for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) == null
+    ]
 
     content {
       name               = host.value["name"]
@@ -150,7 +152,7 @@ resource "azurerm_frontdoor" "main" {
   dynamic "routing_rule" {
     iterator = host
     for_each = [
-      for frontend in var.frontends : frontend if lookup(frontend, "enable_ssl", true)
+      for frontend in var.frontends : frontend if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
     ]
     content {
       name               = "${host.value["name"]}HttpsRedirect"
@@ -180,6 +182,25 @@ resource "azurerm_frontdoor" "main" {
         redirect_protocol = "HttpsOnly"
         redirect_type     = "Moved"
         custom_host       = host.value["custom_domain"]
+      }
+    }
+  }
+
+  dynamic "routing_rule" {
+    iterator = host
+    for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) != null
+    ]
+    content {
+      name               = "${host.value["name"]}redirect"
+      accepted_protocols = ["Http", "Https"]
+      patterns_to_match  = ["/*"]
+      frontend_endpoints = [host.value["name"]]
+
+      redirect_configuration {
+        redirect_protocol = "HttpsOnly"
+        redirect_type     = "Moved"
+        custom_host       = host.value["redirect"]
       }
     }
   }
