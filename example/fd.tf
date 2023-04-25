@@ -6,10 +6,10 @@ module "log_analytics_workspace" {
 data "azurerm_client_config" "this" {}
 
 module "tags" {
-  source       = "git::https://github.com/hmcts/terraform-module-common-tags.git?ref=master"
-  environment  = var.env
-  product      = "cft-platform"
-  builtFrom    = "local"
+  source      = "git::https://github.com/hmcts/terraform-module-common-tags.git?ref=master"
+  environment = var.env
+  product     = "cft-platform"
+  builtFrom   = "local"
 }
 
 module "landing_zone" {
