@@ -53,7 +53,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
 
 
 resource "azurerm_cdn_frontdoor_origin" "my_app_service_origin" {
-  name                          = "${var.project}-${var.env}"
+  name                          = "test-${var.project}-${var.env}"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
 
   enabled                        = true
