@@ -65,3 +65,8 @@ variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
   type        = string
 }
+
+variable "front_door_sku_name" {
+  description = "Specifies the SKU for this Front Door Profile"
+  type        = string
+}
