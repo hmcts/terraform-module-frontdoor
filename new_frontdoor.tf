@@ -9,8 +9,8 @@ resource "azurerm_cdn_frontdoor_endpoint" "my_endpoint" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
 }
 
-resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
-  name                     = "toffee3"
+resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
+  name                     = "defaultBackend"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
   session_affinity_enabled = false
 
@@ -22,60 +22,140 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
 
   health_probe {
     path                = "/health/liveness"
-    request_type        = "HEAD"
     protocol            = "Http"
     interval_in_seconds = 120
   }
 }
-#     dynamic "origin_group_load_balancing" {
-#         iterator = host
-#         for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
-#         ]
-#         load_balancing {
-#             sample_size                 = 4
-#             successful_samples_required = 2
-#             additional_latency_milliseconds = 0
-#         }
-#     }
-    # dynamic "origin_group_health_probe" {
-    #     iterator = host
-    #     for_each = [
-    #   for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
-    #     ]
-    #     health_probe {
-    #         path                = lookup(host.value, "health_path", "/health/liveness")
-    #         request_type        = "HEAD"
-    #         protocol            = lookup(host.value, "health_protocol", "Http")
-    #         interval_in_seconds = 120
-    #     }
-    # }
 
-
-resource "azurerm_cdn_frontdoor_origin" "my_app_service_origin" {
-  name                          = "test-${var.project}-${var.env}"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
+  name                          = "defaultBackend"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
 
   enabled                        = true
-  host_name                      = "firewall-sbox-int-palo-sdssbox.uksouth.cloudapp.azure.com"
+  host_name                      = "www.bing.com"
   http_port                      = 80
   https_port                     = 443
-  origin_host_header             = "toffee3.sandbox.platform.hmcts.net"
+  origin_host_header             = "www.bing.com"
   priority                       = 1
   weight                         = 50
   certificate_name_check_enabled = true
 }
 
-resource "azurerm_cdn_frontdoor_route" "my_route" {
-  name                          = "toffee3"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.my_app_service_origin.id]
-  enabled                = true
+resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
+  for_each                 = var.frontends
+  name                     = each.value.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
+  session_affinity_enabled = false
 
-  supported_protocols    = ["Https"]
-  patterns_to_match      = ["/*"]
-  forwarding_protocol    = "HttpOnly"
-  link_to_default_domain = true
-  https_redirect_enabled = true
+    load_balancing {
+        sample_size                 = 4
+        successful_samples_required = 2
+        additional_latency_milliseconds = 0
+    }
+
+    health_probe {
+        path                = lookup(var.frontends, "health_path", "/health/liveness")
+        protocol            = lookup(var.frontends, "health_protocol", "Http")
+        interval_in_seconds = 120
+    } 
+}
+
+resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
+  for_each                      = var.frontends
+  name                          = each.value.name
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+
+  enabled                        = true
+  host_name                      = each.value.backend_domain
+  http_port                      = lookup(var.frontends, "http_port", 80)
+  https_port                     = 443
+  origin_host_header             = each.value.custom_domain
+  priority                       = 1
+  weight                         = 50
+  certificate_name_check_enabled = true
+}
+
+resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
+  dynamic "routing_rule" {
+   iterator = host
+   for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) == null
+    ]
+   content { 
+    name                          = host.value["name"]
+    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+    enabled                = true
+
+    supported_protocols    = lookup(host.value, "enable_ssl", true) ? ["Https"] : ["Http"]
+    patterns_to_match      = lookup(host.value, "url_patterns", ["/*"])
+    forwarding_protocol    = lookup(host.value, "forwarding_protocol", "HttpOnly")
+    link_to_default_domain = true
+    https_redirect_enabled = false
+   }
+ }
+} 
+
+resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
+  dynamic "routing_rule" {
+   iterator = host
+   for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
+    ]
+   content {
+    name                          = "${host.value["name"]}HttpsRedirect"
+    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+    cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+    enabled                = true
+
+    supported_protocols    = ["Http"]
+    patterns_to_match      = ["/*"]
+    link_to_default_domain = true
+    https_redirect_enabled = true
+   }
+ }
+}
+
+resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
+  dynamic "routing_rule" {
+   iterator = host
+   for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
+    ]
+   content { 
+    name                          = "${host.value["name"]}wwwRedirect"
+    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+    enabled                = true
+
+    supported_protocols    = ["Http", "Https"]
+    patterns_to_match      = ["/*"]
+    link_to_default_domain = true
+    https_redirect_enabled = true
+   }
+ }
+}
+
+resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
+  dynamic "routing_rule" {
+   iterator = host
+   for_each = [
+      for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) != null
+    ]
+   content { 
+    name                          = "${host.value["name"]}redirect"
+    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+    enabled                = true
+
+    supported_protocols    = ["Http", "Https"]
+    patterns_to_match      = ["/*"]
+    link_to_default_domain = true
+    https_redirect_enabled = true
+   }
+ }
 }
