@@ -8,6 +8,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "1.0"
+    action  = "Block"
   }
 }
 
