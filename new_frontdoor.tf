@@ -1,11 +1,11 @@
 resource "azurerm_cdn_frontdoor_profile" "my_front_door" {
-  name                = "${var.project}-${var.env}"
+  name                = "test-${var.project}-${var.env}"
   resource_group_name = var.resource_group
   sku_name            = var.front_door_sku_name
 }
 
 resource "azurerm_cdn_frontdoor_endpoint" "my_endpoint" {
-  name                     = ${var.project}-${var.env}
+  name                     = "test-${var.project}-${var.env}"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
 }
 
