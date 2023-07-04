@@ -65,7 +65,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
 
   enabled                        = true
-  host_name                      = each.value.custom_domain
+  host_name                      = each.value.backend_domain[0]
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
   origin_host_header             = each.value.custom_domain
