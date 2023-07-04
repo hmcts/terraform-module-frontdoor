@@ -67,8 +67,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
    }
     name                          = "${each.value.name}HttpsRedirect"
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-    cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
+    cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
     enabled                = true
 
     supported_protocols    = ["Http"]
@@ -84,8 +84,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
     } 
     name                          = "${each.value.name}wwwRedirect"
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
+    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
     enabled                = true
 
     supported_protocols    = ["Http", "Https"]
@@ -101,8 +101,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
     }
     name                          = "${each.value.name}redirect"
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
+    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
     enabled                = true
 
     supported_protocols    = ["Http", "Https"]
