@@ -63,7 +63,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   for_each                      = var.frontends
   name                          = each.value.name
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id[my_origin_group]
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id[each.key]
 
   enabled                        = true
   host_name                      = each.value.backend_domain
@@ -81,8 +81,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
     ] 
     name                          = each.value["name"]
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id[my_origin_group]
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id[front_door_origin]]
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id[each.key]
+    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id[each.key]]
     enabled                = true
 
     supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
