@@ -50,7 +50,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
     load_balancing {
         sample_size                 = 4
         successful_samples_required = 2
-        additional_latency_milliseconds = 0
+        additional_latency_in_milliseconds = 0
     }
 
     health_probe {
@@ -76,86 +76,81 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
-  dynamic "routing_rule" {
-   iterator = host
    for_each = [
       for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) == null
-    ]
-   content { 
-    name                          = host.value["name"]
+    ] 
+    name                          = each.value["name"]
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
     cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
     cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
     enabled                = true
 
-    supported_protocols    = lookup(host.value, "enable_ssl", true) ? ["Https"] : ["Http"]
-    patterns_to_match      = lookup(host.value, "url_patterns", ["/*"])
-    forwarding_protocol    = lookup(host.value, "forwarding_protocol", "HttpOnly")
+    supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
+    patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
+    forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
     link_to_default_domain = true
     https_redirect_enabled = false
-   }
- }
 } 
 
-resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
-  dynamic "routing_rule" {
-   iterator = host
-   for_each = [
-      for frontend in var.frontends : frontend if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
-    ]
-   content {
-    name                          = "${host.value["name"]}HttpsRedirect"
-    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-    cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
-    enabled                = true
+# resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
+#   dynamic "routing_rule" {
+#    iterator = host
+#    for_each = [
+#       for frontend in var.frontends : frontend if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
+#     ]
+#    content {
+#     name                          = "${host.value["name"]}HttpsRedirect"
+#     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+#     cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+#     cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+#     enabled                = true
 
-    supported_protocols    = ["Http"]
-    patterns_to_match      = ["/*"]
-    link_to_default_domain = true
-    https_redirect_enabled = true
-   }
- }
-}
+#     supported_protocols    = ["Http"]
+#     patterns_to_match      = ["/*"]
+#     link_to_default_domain = true
+#     https_redirect_enabled = true
+#    }
+#  }
+# }
 
-resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
-  dynamic "routing_rule" {
-   iterator = host
-   for_each = [
-      for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
-    ]
-   content { 
-    name                          = "${host.value["name"]}wwwRedirect"
-    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
-    enabled                = true
+# resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
+#   dynamic "routing_rule" {
+#    iterator = host
+#    for_each = [
+#       for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
+#     ]
+#    content { 
+#     name                          = "${host.value["name"]}wwwRedirect"
+#     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+#     cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+#     cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+#     enabled                = true
 
-    supported_protocols    = ["Http", "Https"]
-    patterns_to_match      = ["/*"]
-    link_to_default_domain = true
-    https_redirect_enabled = true
-   }
- }
-}
+#     supported_protocols    = ["Http", "Https"]
+#     patterns_to_match      = ["/*"]
+#     link_to_default_domain = true
+#     https_redirect_enabled = true
+#    }
+#  }
+# }
 
-resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
-  dynamic "routing_rule" {
-   iterator = host
-   for_each = [
-      for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) != null
-    ]
-   content { 
-    name                          = "${host.value["name"]}redirect"
-    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
-    enabled                = true
+# resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
+#   dynamic "routing_rule" {
+#    iterator = host
+#    for_each = [
+#       for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) != null
+#     ]
+#    content { 
+#     name                          = "${host.value["name"]}redirect"
+#     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+#     cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
+#     cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin.id]
+#     enabled                = true
 
-    supported_protocols    = ["Http", "Https"]
-    patterns_to_match      = ["/*"]
-    link_to_default_domain = true
-    https_redirect_enabled = true
-   }
- }
-}
+#     supported_protocols    = ["Http", "Https"]
+#     patterns_to_match      = ["/*"]
+#     link_to_default_domain = true
+#     https_redirect_enabled = true
+#    }
+#  }
+# }
