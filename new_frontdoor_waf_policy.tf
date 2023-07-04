@@ -46,12 +46,12 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
     }
   }
 
-  custom_rule {
     dynamic "custom_rule" {
     iterator = custom_rule
     for_each = lookup(each.value, "custom_rules", [])
 
     content {
+    custom_rule {
       name     = custom_rule.value.name
       enabled  = true
       priority = custom_rule.value.priority
