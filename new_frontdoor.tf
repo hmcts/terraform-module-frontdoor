@@ -52,20 +52,11 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
         successful_samples_required = 2
         additional_latency_in_milliseconds = 0
     }
-
-  dynamic "backend_pool_health_probe" {
-    iterator = host
-    for_each = [
-    for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
-    ]
-    content {
-        health_probe {
-            path                = lookup(host.value, "health_path", "/health/liveness")
-             protocol            = lookup(host.value, "health_protocol", "Http")
-                interval_in_seconds = 120
-        }
-    }     
-  }
+    health_probe {
+        path                = lookup(each.value, "health_path", "/health/liveness")
+        protocol            = lookup(each.value, "health_protocol", "Http")
+        interval_in_seconds = 120
+    }
 }    
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
