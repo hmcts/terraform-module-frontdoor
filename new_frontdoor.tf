@@ -9,38 +9,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "my_endpoint" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
 }
 
-resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
-  name                     = "defaultBackend"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
-  session_affinity_enabled = false
-
-  load_balancing {
-   sample_size                 = 4
-   successful_samples_required = 2
-   additional_latency_in_milliseconds = 0
-  }
-
-  health_probe {
-    path                = "/health/liveness"
-    protocol            = "Http"
-    interval_in_seconds = 120
-  }
-}
-
-resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
-  name                          = "defaultBackend"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
-
-  enabled                        = true
-  host_name                      = "www.bing.com"
-  http_port                      = 80
-  https_port                     = 443
-  origin_host_header             = "www.bing.com"
-  priority                       = 1
-  weight                         = 50
-  certificate_name_check_enabled = true
-}
-
 resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
   for_each                 = { for frontend in var.frontends: frontend.name => frontend }
   name                     = each.value.name
@@ -75,9 +43,9 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
-   for_each = [
+   for_each = {
       for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) == null
-    ] 
+    } 
     name                          = each.value["name"]
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
     cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
