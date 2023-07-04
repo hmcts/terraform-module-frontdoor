@@ -42,7 +42,7 @@ resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
-  for_each                 = toset([var.frontends])
+  for_each                 = { for frontend in var.frontends: frontend.name => frontend }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
   session_affinity_enabled = false
@@ -61,7 +61,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
-  for_each                      = toset([var.frontends])
+  for_each                      = { for frontend in var.frontends: frontend.name => frontend }
   name                          = each.value.name
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
 
