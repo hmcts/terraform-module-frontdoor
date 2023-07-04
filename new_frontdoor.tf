@@ -95,10 +95,10 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
-   for_each = [
+   for_each = {
       for frontend in var.frontends: frontend.name => frontend
       if lookup(frontend, "redirect", null) != null
-    ]
+    }
     name                          = "${each.value.name}redirect"
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
     cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group.id
