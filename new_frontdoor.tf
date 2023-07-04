@@ -43,10 +43,11 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
-   for_each = {
-      for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) == null
-    } 
-    name                          = each.value["name"]
+   for_each = { 
+    for frontend in var.frontends: frontend.name => frontend
+    if lookup(frontend, "redirect", null) == null
+    }
+    name                          = each.value.name
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
     cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
     cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
