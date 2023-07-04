@@ -47,32 +47,32 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   }
   custom_rule {
 
-    dynamic "custom_rules" {
-    iterator = custom_rules
-    for_each = lookup(each.value, "custom_rules", [])
+    dynamic "custom_rule" {
+        iterator = custom_rule
+        for_each = lookup(each.value, "custom_rules", [])
 
-    content {
-      name     = custom_rules.value.name
-      enabled  = true
-      priority = custom_rules.value.priority
-      type     = custom_rules.value.type
-      action   = custom_rules.value.action
-
-        dynamic "match_condition" {
-        iterator = match_condition
-        for_each = lookup(custom_rule.value, "match_conditions", [])
         content {
-          match_variable     = match_condition.value.match_variable
-          operator           = match_condition.value.operator
-          negation_condition = match_condition.value.negation_condition
-          match_values       = match_condition.value.match_values
-          transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
+            name     = custom_rule.value.name
+            enabled  = true
+            priority = custom_rule.value.priority
+            type     = custom_rule.value.type
+            action   = custom_rule.value.action
+
+            dynamic "match_condition" {
+                iterator = match_condition
+                for_each = lookup(custom_rule.value, "match_conditions", [])
+                content {
+                match_variable     = match_condition.value.match_variable
+                operator           = match_condition.value.operator
+                negation_condition = match_condition.value.negation_condition
+                match_values       = match_condition.value.match_values
+                transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
+                }
+            }
         }
-      }
     }
-   }
-  }
-}  
+  } 
+}
 
 resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
   for_each                      = { for frontend in var.frontends: frontend.name => frontend }
