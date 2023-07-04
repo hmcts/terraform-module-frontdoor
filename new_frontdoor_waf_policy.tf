@@ -45,20 +45,20 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
       }
     }
   }
+  custom_rule {
 
-    dynamic "custom_rule" {
-    iterator = custom_rule
+    dynamic "custom_rules" {
+    iterator = custom_rules
     for_each = lookup(each.value, "custom_rules", [])
 
     content {
-    custom_rule {
-      name     = custom_rule.value.name
+      name     = custom_rules.value.name
       enabled  = true
-      priority = custom_rule.value.priority
-      type     = custom_rule.value.type
-      action   = custom_rule.value.action
+      priority = custom_rules.value.priority
+      type     = custom_rules.value.type
+      action   = custom_rules.value.action
 
-      dynamic "match_condition" {
+        dynamic "match_condition" {
         iterator = match_condition
         for_each = lookup(custom_rule.value, "match_conditions", [])
         content {
