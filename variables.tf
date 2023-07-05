@@ -20,6 +20,10 @@ variable "frontends" {
   description = "Variable holds frontdoor configuration"
   type        = any
 }
+variable "new_frontends" {
+  description = "Variable holds new frontdoor configuration"
+  type        = any
+}
 variable "subscription_id" {
   description = "Enter ID of subscription frontdoor is deployed to"
   type        = string
