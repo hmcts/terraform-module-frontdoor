@@ -10,7 +10,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "my_endpoint" {
 }
 
 resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
-  for_each                 = { for frontend in var.frontends: frontend.name => frontend }
+  for_each                 = { for frontend in var.new_frontends: frontend.name => frontend }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
   session_affinity_enabled = false
@@ -28,7 +28,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "my_origin_group" {
 }    
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
-  for_each                      = { for frontend in var.frontends: frontend.name => frontend }
+  for_each                      = { for frontend in var.new_frontends: frontend.name => frontend }
   name                          = each.value.name
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.my_origin_group[each.key].id
 
@@ -44,7 +44,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
    for_each = { 
-    for frontend in var.frontends: frontend.name => frontend
+    for frontend in var.new_frontends: frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
     }
     name                          = each.value.name
@@ -62,7 +62,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
    for_each = { 
-    for frontend in var.frontends: frontend.name => frontend
+    for frontend in var.new_frontends: frontend.name => frontend
     if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
    }
     name                          = "${each.value.name}HttpsRedirect"
@@ -79,7 +79,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
    for_each = {
-      for frontend in var.frontends: frontend.name => frontend
+      for frontend in var.new_frontends: frontend.name => frontend
       if lookup(frontend, "www_redirect", false)
     } 
     name                          = "${each.value.name}wwwRedirect"
@@ -96,7 +96,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
    for_each = {
-      for frontend in var.frontends: frontend.name => frontend
+      for frontend in var.new_frontends: frontend.name => frontend
       if lookup(frontend, "redirect", null) != null
     }
     name                          = "${each.value.name}redirect"
