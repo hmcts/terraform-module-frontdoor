@@ -59,7 +59,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
     patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
     forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
     link_to_default_domain = true
-    https_redirect_enabled = false
+    https_redirect_enabled = true
 } 
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
@@ -73,10 +73,10 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
     cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
     enabled                = true
 
-    supported_protocols    = ["Http", "Https"]
+    supported_protocols    = ["Http",]
     patterns_to_match      = ["/*"]
     link_to_default_domain = true
-    https_redirect_enabled = true
+    https_redirect_enabled = false
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
