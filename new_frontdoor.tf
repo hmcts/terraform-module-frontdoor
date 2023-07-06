@@ -95,6 +95,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
     cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
     enabled                = true
 
+    cache {
+        compression_enabled = false
+        query_string_caching_behavior = "UseQueryString"
+    }
+
     supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
     patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
     forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
@@ -109,14 +114,15 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
    }
     name                          = "${each.value.name}HttpsRedirect"
     cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-    cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+    cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
     enabled                = true
 
-    supported_protocols    = ["Http", "Https"]
+    supported_protocols    = ["Http"]
     patterns_to_match      = ["/*"]
+    forwarding_protocol    = "MatchRequest"
     link_to_default_domain = true
-    https_redirect_enabled = true
+    https_redirect_enabled = false
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
