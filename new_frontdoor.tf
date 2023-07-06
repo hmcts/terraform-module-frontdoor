@@ -103,7 +103,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
     supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
     patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
     forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
-    link_to_default_domain = true
+    link_to_default_domain = false
     https_redirect_enabled = false
 } 
 
@@ -121,7 +121,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
     supported_protocols    = ["Http"]
     patterns_to_match      = ["/*"]
     forwarding_protocol    = "MatchRequest"
-    link_to_default_domain = true
+    link_to_default_domain = false
     https_redirect_enabled = false
 }
 
