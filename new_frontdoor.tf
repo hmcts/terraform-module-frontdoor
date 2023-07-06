@@ -63,9 +63,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
         additional_latency_in_milliseconds = 0
     }
     dynamic "health_probe" {
-        for_each = [
-        for health in var.health_probe : health if var.health_probe, == true
-        ]
+        for_each = var.health_probe == true ? [1] : []
         content {
             path                = lookup(each.value, "health_path", "/health/liveness")
             protocol            = lookup(each.value, "health_protocol", "Http")
