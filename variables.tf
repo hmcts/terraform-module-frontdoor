@@ -26,7 +26,7 @@ variable "new_frontends" {
 }
 variable "health_probe" {
   description = "If enable will add health probe to origin group in frontdoor"
-  type        = string
+  type        = bool
 }
 variable "subscription_id" {
   description = "Enter ID of subscription frontdoor is deployed to"
