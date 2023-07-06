@@ -11,6 +11,46 @@ resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
   tags                     = var.common_tags
 }
 
+resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
+  name                     = "defaultBackend"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
+  session_affinity_enabled = false
+
+  load_balancing {
+   sample_size                 = 4
+   successful_samples_required = 2
+   additional_latency_in_milliseconds = 0
+  }
+}
+
+resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
+  name                          = "defaultBackend"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+
+  enabled                        = true
+  host_name                      = "www.bing.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.bing.com"
+  priority                       = 1
+  weight                         = 50
+  certificate_name_check_enabled = true
+}
+
+resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
+    name                          = "defaultRouting"
+    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.endpoint.id
+    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
+    enabled                = true
+
+    supported_protocols    = ["Http", "Https"]
+    patterns_to_match      = ["/*"]
+    forwarding_protocol    = "MatchRequest"
+    link_to_default_domain = true
+    https_redirect_enabled = false
+}
+
 resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
   for_each                 = { for frontend in var.new_frontends: frontend.name => frontend }
   name                     = each.value.name
@@ -123,4 +163,22 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_A" {
+   for_each = { 
+    for frontend in var.new_frontends: frontend.name => frontend
+    if lookup(frontend, "redirect", null) == null
+    }
+   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_A.id]
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B" {
+   for_each = { 
+    for frontend in var.new_frontends: frontend.name => frontend
+    if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
+   }
+   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_B.id]
 }
