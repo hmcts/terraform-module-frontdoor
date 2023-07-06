@@ -13,7 +13,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
 
 resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
   name                     = "defaultBackend"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   session_affinity_enabled = false
 
   load_balancing {
@@ -171,7 +171,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_A
     if lookup(frontend, "redirect", null) == null
     }
    cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
-   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_A.id]
+   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_A[each.key].id]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B" {
@@ -180,5 +180,5 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B
     if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
    }
    cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
-   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_B.id]
+   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_B[each.key].id]
 }
