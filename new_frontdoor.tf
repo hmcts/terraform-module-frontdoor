@@ -89,10 +89,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
     for frontend in var.new_frontends: frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
     }
-    name                          = each.value.name
-    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+    name                            = each.value.name
+    cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+    cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+    cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+    cdn_frontdoor_custom_domain_ids = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
     enabled                = true
 
     cache {
@@ -112,10 +113,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
     for frontend in var.new_frontends: frontend.name => frontend
     if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
    }
-    name                          = "${each.value.name}HttpsRedirect"
-    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
-    cdn_frontdoor_origin_ids       = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
+    name                            = "${each.value.name}HttpsRedirect"
+    cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+    cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+    cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
+    cdn_frontdoor_custom_domain_ids = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
     enabled                = true
 
     supported_protocols    = ["Http"]
@@ -130,10 +132,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
       for frontend in var.new_frontends: frontend.name => frontend
       if lookup(frontend, "www_redirect", false)
     } 
-    name                          = "${each.value.name}wwwRedirect"
-    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+    name                            = "${each.value.name}wwwRedirect"
+    cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+    cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+    cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+    cdn_frontdoor_custom_domain_ids = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
     enabled                = true
 
     supported_protocols    = ["Http", "Https"]
@@ -147,10 +150,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
       for frontend in var.new_frontends: frontend.name => frontend
       if lookup(frontend, "redirect", null) != null
     }
-    name                          = "${each.value.name}redirect"
-    cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.endpoint.id
-    cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-    cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+    name                            = "${each.value.name}redirect"
+    cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+    cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+    cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+    cdn_frontdoor_custom_domain_ids = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
     enabled                = true
 
     supported_protocols    = ["Http", "Https"]
