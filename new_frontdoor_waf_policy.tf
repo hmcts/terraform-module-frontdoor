@@ -2,12 +2,12 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   for_each = { for frontend in var.new_frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
   }
-  name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}"
-  resource_group_name               = var.resource_group
-  sku_name                          = azurerm_cdn_frontdoor_profile.front_door.sku_name
-  enabled                           = true
-  mode                              = lookup(each.value, "mode", "Prevention")
-  tags                              = var.common_tags
+  name                = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}"
+  resource_group_name = var.resource_group
+  sku_name            = azurerm_cdn_frontdoor_profile.front_door.sku_name
+  enabled             = true
+  mode                = lookup(each.value, "mode", "Prevention")
+  tags                = var.common_tags
 
   managed_rule {
     type    = "DefaultRuleSet"
@@ -49,30 +49,30 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
     iterator = custom_rule
     for_each = lookup(each.value, "custom_rules", [])
     content {
-        name     = custom_rule.value.name
-        enabled  = true
-        priority = custom_rule.value.priority
-        type     = custom_rule.value.type
-        action   = custom_rule.value.action
+      name     = custom_rule.value.name
+      enabled  = true
+      priority = custom_rule.value.priority
+      type     = custom_rule.value.type
+      action   = custom_rule.value.action
 
-        dynamic "match_condition" {
-            iterator = match_condition
-            for_each = lookup(custom_rule.value, "match_conditions", [])
-            content {
-            match_variable     = match_condition.value.match_variable
-            operator           = match_condition.value.operator
-            negation_condition = match_condition.value.negation_condition
-            match_values       = match_condition.value.match_values
-            transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
-            }
+      dynamic "match_condition" {
+        iterator = match_condition
+        for_each = lookup(custom_rule.value, "match_conditions", [])
+        content {
+          match_variable     = match_condition.value.match_variable
+          operator           = match_condition.value.operator
+          negation_condition = match_condition.value.negation_condition
+          match_values       = match_condition.value.match_values
+          transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
         }
+      }
     }
   }
-} 
+}
 
 
 resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
-  for_each                      = { for frontend in var.new_frontends: frontend.name => frontend }
+  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
   name                     = "${each.value.name}-Security-Policy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 
