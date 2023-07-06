@@ -95,11 +95,11 @@ resource "azurerm_cdn_frontdoor_rule_set" "https_redirect" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 }
 
-resource "azurerm_cdn_frontdoor_rule" "https_redirect" {
+resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
 
   name                      = "httpsredirectrule"
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.rules.id
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.https_redirect.id
   order                     = 1
   behavior_on_match         = "Continue"
 
