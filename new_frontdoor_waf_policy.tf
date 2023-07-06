@@ -91,14 +91,14 @@ resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
 }
 
 resource "azurerm_cdn_frontdoor_rule_set" "rules" {
-  name                     = "exampleruleset"
+  name                     = "Https_redirect"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 }
 
 resource "azurerm_cdn_frontdoor_rule" "https_redirect" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.example, azurerm_cdn_frontdoor_origin.example]
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
 
-  name                      = "examplerule"
+  name                      = "https_redirect_rule"
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.rules.id
   order                     = 1
   behavior_on_match         = "Continue"
