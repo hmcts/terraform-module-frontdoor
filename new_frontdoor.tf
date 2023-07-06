@@ -59,7 +59,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
     patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
     forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
     link_to_default_domain = true
-    https_redirect_enabled = true
+    https_redirect_enabled = false
 } 
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
