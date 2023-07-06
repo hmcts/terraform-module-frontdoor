@@ -121,6 +121,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
+  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.https_redirect.id]
   enabled                         = true
 
   supported_protocols    = ["Http"]

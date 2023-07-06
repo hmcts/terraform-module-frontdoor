@@ -90,7 +90,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_rule_set" "rules" {
+resource "azurerm_cdn_frontdoor_rule_set" "https_redirect" {
   name                     = "httpsredirect"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 }
