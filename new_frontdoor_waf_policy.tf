@@ -109,3 +109,5 @@ resource "azurerm_cdn_frontdoor_rule" "https_redirect" {
         destination_hostname = ""
         redirect_protocol    = "Https"
     }
+  }
+}
