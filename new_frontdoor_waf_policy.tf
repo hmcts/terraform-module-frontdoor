@@ -4,7 +4,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   }
   name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}"
   resource_group_name               = var.resource_group
-  sku_name                          = azurerm_cdn_frontdoor_profile.my_front_door.sku_name
+  sku_name                          = azurerm_cdn_frontdoor_profile.front_door.sku_name
   enabled                           = true
   mode                              = lookup(each.value, "mode", "Prevention")
   tags                              = var.common_tags
@@ -74,7 +74,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
 resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
   for_each                      = { for frontend in var.new_frontends: frontend.name => frontend }
   name                     = "${each.value.name}-Security-Policy"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.my_front_door.id
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 
   security_policies {
     firewall {
@@ -82,7 +82,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
 
       association {
         domain {
-          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.my_endpoint.id
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.endpoint.id
         }
         patterns_to_match = ["/*"]
       }
