@@ -82,7 +82,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
 
       association {
         domain {
-          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain.id
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
         }
         patterns_to_match = ["/*"]
       }
