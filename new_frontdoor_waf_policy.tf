@@ -77,7 +77,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
 
   security_policies {
     firewall {
-      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.custom.id
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.custom[each.key].id
 
       association {
         domain {
