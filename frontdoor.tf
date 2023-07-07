@@ -122,7 +122,7 @@ resource "azurerm_frontdoor" "main" {
       }
 
       load_balancing_name = "loadBalancingSettings-${host.value["name"]}"
-      health_probe_name   =  length(host.value["backend_domain"]) > 1 ? "healthProbeSettings-${host.value["name"]}" : ""
+      health_probe_name   =  length(host.value["backend_domain"]) > 1 ? "healthProbeSettings-${host.value["name"]}" : null
     }
   }
 
