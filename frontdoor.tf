@@ -91,13 +91,14 @@ resource "azurerm_frontdoor" "main" {
   dynamic "backend_pool_health_probe" {
     iterator = host
     for_each = [
-      for frontend in var.frontends : frontend if length( lookup(frontend, "backend_domain", [])) > 1 ? true : false
+      for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
     ]
     content {
       name                = "healthProbeSettings-${host.value["name"]}"
       interval_in_seconds = 120
       path                = lookup(host.value, "health_path", "/health/liveness")
       protocol            = lookup(host.value, "health_protocol", "Http")
+      enabled             = length(host.value["backend_domain"]) > 1 ? true : false
     }
   }
 
@@ -122,7 +123,7 @@ resource "azurerm_frontdoor" "main" {
       }
 
       load_balancing_name = "loadBalancingSettings-${host.value["name"]}"
-      health_probe_name   =  length(host.value["backend_domain"]) > 1 ? "healthProbeSettings-${host.value["name"]}" : null
+      health_probe_name   = "healthProbeSettings-${host.value["name"]}"
     }
   }
 
