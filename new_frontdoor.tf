@@ -10,7 +10,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   tags                     = var.common_tags
 }
-
+######## Defaults ########
 resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
   name                     = "defaultBackend"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
@@ -50,6 +50,7 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   link_to_default_domain = true
   https_redirect_enabled = false
 }
+######## End defaults ########
 
 resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
@@ -62,7 +63,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
     successful_samples_required        = 2
     additional_latency_in_milliseconds = 0
   }
-  
+
 # There's no point adding a health probe with a single backend, it just adds a lot of traffic for no benefit
   dynamic "health_probe" {
     for_each = [
