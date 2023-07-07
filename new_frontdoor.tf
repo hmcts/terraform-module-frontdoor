@@ -201,3 +201,21 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_B[each.key].id]
 }
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
+  for_each = {
+    for frontend in var.new_frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_C[each.key].id]
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D" {
+  for_each = {
+    for frontend in var.new_frontends : frontend.name => frontend
+    if lookup(frontend, "redirect", null) != null
+  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_D[each.key].id]
+}
