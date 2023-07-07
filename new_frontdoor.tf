@@ -66,6 +66,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
 
 # There's no point adding a health probe with a single backend, it just adds a lot of traffic for no benefit
   dynamic "health_probe" {
+    iterator = host
     for_each = [
       for frontend in var.new_frontends : frontend if length(host.value["backend_domain"]) > 1 ? true : false
     ]
