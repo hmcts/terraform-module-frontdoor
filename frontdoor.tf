@@ -98,6 +98,7 @@ resource "azurerm_frontdoor" "main" {
       interval_in_seconds = 120
       path                = lookup(host.value, "health_path", "/health/liveness")
       protocol            = lookup(host.value, "health_protocol", "Http")
+      enabled             = length(host.value["backend_domain"]) > 1 ? true : false
     }
   }
 
