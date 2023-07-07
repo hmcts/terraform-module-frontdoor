@@ -62,8 +62,12 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
     successful_samples_required        = 2
     additional_latency_in_milliseconds = 0
   }
+  
+# There's no point adding a health probe with a single backend, it just adds a lot of traffic for no benefit
   dynamic "health_probe" {
-    for_each = var.health_probe == true ? [1] : []
+    for_each = [
+      for frontend in var.new_frontends : frontend if length(host.value["backend_domain"]) > 1 ? true : false
+    ]
     content {
       path                = lookup(each.value, "health_path", "/health/liveness")
       protocol            = lookup(each.value, "health_protocol", "Http")
