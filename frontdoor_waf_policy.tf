@@ -3,11 +3,14 @@ resource "azurerm_frontdoor_firewall_policy" "custom" {
     frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
   }
-  name                = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}"
-  resource_group_name = var.resource_group
-  tags                = var.common_tags
-  enabled             = true
-  mode                = lookup(each.value, "mode", "Prevention")
+  name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}"
+  resource_group_name               = var.resource_group
+  tags                              = var.common_tags
+  enabled                           = true
+  mode                              = lookup(each.value, "mode", "Prevention")
+  redirect_url                      = lookup(each.value, "redirect_url", null)
+  custom_block_response_status_code = lookup(each.value, "custom_block_response_status_code", null)
+  custom_block_response_body        = lookup(each.value, "custom_block_response_body", null)
 
   managed_rule {
     type    = "DefaultRuleSet"
