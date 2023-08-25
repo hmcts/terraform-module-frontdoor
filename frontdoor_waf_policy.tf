@@ -9,8 +9,6 @@ resource "azurerm_frontdoor_firewall_policy" "custom" {
   enabled                           = true
   mode                              = lookup(each.value, "mode", "Prevention")
   redirect_url                      = lookup(each.value, "redirect_url", null)
-  custom_block_response_status_code = lookup(each.value, "custom_block_response_status_code", null)
-  custom_block_response_body        = lookup(each.value, "custom_block_response_body", null)
 
   managed_rule {
     type    = "DefaultRuleSet"
