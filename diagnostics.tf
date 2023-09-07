@@ -6,27 +6,13 @@ resource "azurerm_monitor_diagnostic_setting" "frontdoor_diagnostics" {
 
   enabled_log {
     category = "FrontdoorAccessLog"
-
-    retention_policy {
-      enabled = true
-      days    = 7
-    }
   }
 
   enabled_log {
     category = "FrontdoorWebApplicationFirewallLog"
-    retention_policy {
-      enabled = true
-      days    = 30
-    }
   }
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = true
-      days    = 30
-    }
   }
 }
