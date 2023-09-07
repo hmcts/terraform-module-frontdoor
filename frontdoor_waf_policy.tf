@@ -8,6 +8,7 @@ resource "azurerm_frontdoor_firewall_policy" "custom" {
   tags                = var.common_tags
   enabled             = true
   mode                = lookup(each.value, "mode", "Prevention")
+  redirect_url        = lookup(each.value, "redirect_url", null)
 
   managed_rule {
     type    = "DefaultRuleSet"
