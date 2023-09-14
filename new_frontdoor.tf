@@ -236,3 +236,4 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
   record {
     value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
   }
+}
