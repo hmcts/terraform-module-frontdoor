@@ -227,7 +227,7 @@ locals {
 data "azurerm_dns_zone" "public_dns" {
   for_each            = local.modified_dns_zone_names
   provider            = azurerm.public_dns
-  name                = replace(each.value.custom_domain, "^[^.]+\\.", "")
+  name                = each.value
   resource_group_name = "reformmgmtrg"
 }
 
