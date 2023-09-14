@@ -84,7 +84,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   host_name                      = each.value.backend_domain[0]
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
-  origin_host_header             = replace(each.value.custom_domain, "^[^.]+\\.", "")
+  origin_host_header             = each.value.custom_domain
   priority                       = 1
   weight                         = 50
   certificate_name_check_enabled = true
@@ -174,7 +174,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-  host_name                = each.value.custom_domain
+  host_name                = replace(each.value.custom_domain, "toffee3", "")
 
   tls {
     certificate_type    = "ManagedCertificate"
