@@ -218,20 +218,22 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_D[each.key].id]
 }
 
-# data "azurerm_dns_zone" "public_dns" {
-#   provider = azurerm.public_dns
-#   name                = var.frontdoor_apex_domain_name
-#   resource_group_name = "reformmgmtrg"
-# }
+data "azurerm_dns_zone" "public_dns" {
+  for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
+  provider = azurerm.public_dns
+  name                = replace(each.value.custom_domain, "^[^.]+\\.", "")
+  resource_group_name = "reformmgmtrg"
+}
 
-# resource "azurerm_dns_txt_record" "public_dns_record" {
-#   provider = azurerm.public_dns
-#   name                = join(".", ["_dnsauth", ])
-#   zone_name           = data.azurerm_dns_zone.public_dns.name
-#   resource_group_name = data.azurerm_resource_group.public_dns.name
-#   ttl                 = 3600
+resource "azurerm_dns_txt_record" "public_dns_record" {
+  for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
+  provider            = azurerm.public_dns
+  name                = join(".", ["_dnsauth", each.value.custom_domain ])
+  zone_name           = data.azurerm_dns_zone.public_dns.name
+  resource_group_name = data.azurerm_dns_zone.public_dns.resource_group_name
+  ttl                 = 3600
 
-#   record {
-#     value = azurerm_cdn_frontdoor_custom_domain.custom_domain.validation_token
-#   }
-# }
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.custom_domain.validation_token
+  }
+}
