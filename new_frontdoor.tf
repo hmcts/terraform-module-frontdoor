@@ -228,7 +228,7 @@ data "azurerm_dns_zone" "public_dns" {
 resource "azurerm_dns_txt_record" "public_dns_record" {
   for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
   provider            = azurerm.public_dns
-  name                = join(".", ["_dnsauth", replace(each.value.custom_domain, "/^[^.]+\\.[^.]+\\./", "")])
+  name                = join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
   zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
   resource_group_name = data.azurerm_dns_zone.public_dns[each.key].resource_group_name
   ttl                 = 3600
