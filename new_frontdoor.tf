@@ -174,7 +174,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-  host_name                = replace(each.value.custom_domain, "toffee3", "")
+  host_name                = replace(each.value.custom_domain, "^[^.]+\\.", "")
 
   tls {
     certificate_type    = "ManagedCertificate"
