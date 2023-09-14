@@ -84,7 +84,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   host_name                      = each.value.backend_domain[0]
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
-  origin_host_header             = each.value.custom_domain
+  origin_host_header             = replace(each.value.custom_domain, "^[^.]+\\.", "")
   priority                       = 1
   weight                         = 50
   certificate_name_check_enabled = true
@@ -218,16 +218,10 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_D[each.key].id]
 }
 
-locals {
-  modified_dns_zone_names = {
-    for frontend in var.new_frontends : frontend.name => replace(frontend.custom_domain, "^[^.]+\\.", "")
-  }
-}
-
 data "azurerm_dns_zone" "public_dns" {
-  for_each            = local.modified_dns_zone_names
-  provider            = azurerm.public_dns
-  name                = each.value
+  for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
+  provider = azurerm.public_dns
+  name                = replace(each.value.custom_domain, "^[^.]+\\.", "")
   resource_group_name = "reformmgmtrg"
 }
 
