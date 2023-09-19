@@ -9,7 +9,6 @@ resource "azurerm_monitor_diagnostic_setting" "frontdoor_diagnostics" {
 
     retention_policy {
       enabled = true
-      days    = 7
     }
   }
 
@@ -17,7 +16,6 @@ resource "azurerm_monitor_diagnostic_setting" "frontdoor_diagnostics" {
     category = "FrontdoorWebApplicationFirewallLog"
     retention_policy {
       enabled = true
-      days    = 30
     }
   }
 
@@ -26,7 +24,6 @@ resource "azurerm_monitor_diagnostic_setting" "frontdoor_diagnostics" {
 
     retention_policy {
       enabled = true
-      days    = 30
     }
   }
 }
