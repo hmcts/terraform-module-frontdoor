@@ -74,3 +74,9 @@ variable "front_door_sku_name" {
   description = "Specifies the SKU for this Front Door Profile"
   type        = string
 }
+
+variable "add_txt_record" {
+  type        = bool
+  description = "Boolean to create dns txt record resource or not"
+  default     = true
+}

@@ -73,7 +73,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
 
 resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
-  name                     = "${each.value.name}-Security-Policy"
+  name                     = "${each.value.name}${var.env}Premium-securityPolicy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 
   security_policies {
@@ -105,9 +105,9 @@ resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
 
   actions {
     url_redirect_action {
-        redirect_type        = "Moved"
-        destination_hostname = ""
-        redirect_protocol    = "Https"
+      redirect_type        = "Moved"
+      destination_hostname = ""
+      redirect_protocol    = "Https"
     }
   }
 }

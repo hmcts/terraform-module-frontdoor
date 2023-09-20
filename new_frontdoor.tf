@@ -226,7 +226,7 @@ data "azurerm_dns_zone" "public_dns" {
 }
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
-  for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
+  for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend } : {}
   provider            = azurerm.public_dns
   name                = join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
   zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
@@ -234,6 +234,6 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
   ttl                 = 3600
 
   record {
-    value = try(azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token, "aaabbbccc")
+    value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
   }
 }
