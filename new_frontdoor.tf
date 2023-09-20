@@ -64,7 +64,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
     additional_latency_in_milliseconds = 0
   }
 
-# There's no point adding a health probe with a single backend, it just adds a lot of traffic for no benefit
+  # There's no point adding a health probe with a single backend, it just adds a lot of traffic for no benefit
   dynamic "health_probe" {
     for_each = length(each.value["backend_domain"]) > 1 ? [1] : []
     content {
@@ -220,7 +220,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 
 data "azurerm_dns_zone" "public_dns" {
   for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
-  provider = azurerm.public_dns
+  provider            = azurerm.public_dns
   name                = replace(each.value.custom_domain, "/^[^.]+\\./", "")
   resource_group_name = "reformmgmtrg"
 }
@@ -234,6 +234,6 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
   ttl                 = 3600
 
   record {
-    value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
+    value = try(azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token, "aaabbbccc")
   }
 }
