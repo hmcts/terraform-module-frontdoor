@@ -218,15 +218,43 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_D[each.key].id]
 }
 
+data "azurerm_dns_zone" "public_dns_apex" {
+  for_each            = { for frontend in var.new_frontends : frontend.name => frontend
+                          if lookup(frontend, "is_apex", false) == true
+                        }
+  provider            = azurerm.public_dns
+  name                = each.value.custom_domain
+  resource_group_name = "reformmgmtrg"
+}
+
+resource "azurerm_dns_txt_record" "public_dns_record_apex" {
+  for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
+                                              if lookup(frontend, "is_apex", false) == true
+                                             } : {}
+  provider            = azurerm.public_dns
+  name                = "_dnsauth"
+  zone_name           = data.azurerm_dns_zone.public_dns_apex[each.key].name
+  resource_group_name = data.azurerm_dns_zone.public_dns_apex[each.key].resource_group_name
+  ttl                 = 3600
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
+  }
+}
+
 data "azurerm_dns_zone" "public_dns" {
-  for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
+  for_each            = { for frontend in var.new_frontends : frontend.name => frontend
+                          if lookup(frontend, "is_apex", false) != true
+                        }
   provider            = azurerm.public_dns
   name                = replace(each.value.custom_domain, "/^[^.]+\\./", "")
   resource_group_name = "reformmgmtrg"
 }
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
-  for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend } : {}
+  for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
+                                                if lookup(frontend, "is_apex", false) != true
+                                             } : {}
   provider            = azurerm.public_dns
   name                = join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
   zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
