@@ -221,7 +221,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 data "azurerm_dns_zone" "public_dns" {
   for_each            = { for frontend in var.new_frontends : frontend.name => frontend }
   provider            = azurerm.public_dns
-  name                = replace(each.value.custom_domain, "/^[^.]+\\./", "")
+  name                = local.is_apex[each.key] ? each.value.custom_domain : replace(each.value.custom_domain, "^[^.]+\\.", "")
   resource_group_name = "reformmgmtrg"
 }
 
@@ -236,4 +236,16 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
   record {
     value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
   }
+}
+
+locals {
+  is_apex = {
+    for key, frontend in var.new_frontends : key => is_apex(frontend.custom_domain)
+  }
+}
+
+# Helper function to check if a domain is an apex domain (e.g., example.net)
+# Returns true if it is, false otherwise
+function is_apex(domain) {
+  return can(regex("^[^.]+\\.[^.]+$", domain))
 }
