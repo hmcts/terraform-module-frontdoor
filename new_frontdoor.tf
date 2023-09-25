@@ -232,7 +232,7 @@ data "azurerm_dns_zone" "public_dns" {
                           if lookup(frontend, "is_apex", false) != true
                         }
   provider            = azurerm.public_dns
-  name                = replace(each.value.custom_domain, "^[^.]+\\.", "")
+  name                = replace(each.value.custom_domain, "/^[^.]+\\./", "")
   resource_group_name = "reformmgmtrg"
 }
 
