@@ -286,8 +286,8 @@ for_each            = var.add_txt_record ? { for frontend in var.new_frontends :
                                              } : {}
   provider            = azurerm.public_dns
   name                = "@"
-  zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
-  resource_group_name = data.azurerm_dns_zone.public_dns[each.key].resource_group_name
+  zone_name           = data.azurerm_dns_zone.public_dns_apex[each.key].name
+  resource_group_name = data.azurerm_dns_zone.public_dns_apex[each.key].resource_group_name
   ttl                 = 3600
   record              = azurerm_cdn_frontdoor_endpoint.endpoint.host_name
 }
