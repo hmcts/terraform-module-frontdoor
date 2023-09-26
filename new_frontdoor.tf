@@ -267,6 +267,7 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
 }
 
 resource "azurerm_dns_cname_record" "cname" {
+depends_on          = [azurerm_cdn_frontdoor_route.routing_rule_A,azurerm_cdn_frontdoor_route.routing_rule_B,azurerm_cdn_frontdoor_route.routing_rule_C,azurerm_cdn_frontdoor_route.routing_rule_D, azurerm_cdn_frontdoor_security_policy.security_policy]
 for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
                                                 if lookup(frontend, "is_apex", false) != true
                                              } : {}
