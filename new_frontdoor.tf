@@ -289,7 +289,7 @@ for_each            = var.add_txt_record ? { for frontend in var.new_frontends :
   zone_name           = data.azurerm_dns_zone.public_dns_apex[each.key].name
   resource_group_name = data.azurerm_dns_zone.public_dns_apex[each.key].resource_group_name
   ttl                 = 3600
-  record              = azurerm_cdn_frontdoor_endpoint.endpoint.id
+  record              = azurerm_cdn_frontdoor_endpoint.endpoint.host_name
 }
 # resource "azurerm_dns_a_record" "apex_alias" {
 # depends_on          = [azurerm_cdn_frontdoor_route.routing_rule_A,azurerm_cdn_frontdoor_route.routing_rule_B,azurerm_cdn_frontdoor_route.routing_rule_C,azurerm_cdn_frontdoor_route.routing_rule_D, azurerm_cdn_frontdoor_security_policy.security_policy]
