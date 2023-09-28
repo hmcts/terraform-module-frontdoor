@@ -179,7 +179,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   tls {
     certificate_type        = "CustomerCertificate"
     minimum_tls_version     = "TLS12"
-    cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.certificate.id
+    cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.certificate[each.key].id
   }
 }
 
