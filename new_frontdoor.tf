@@ -184,13 +184,12 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 }
 
 resource "azurerm_cdn_frontdoor_secret" "certificate" {
-  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
   name                     = "${var.project}-${var.env}-managed-secret"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 
   secret {
     customer_certificate {
-      key_vault_certificate_id = data.azurerm_key_vault_secret.certificate[each.key].id
+      key_vault_certificate_id = data.azurerm_key_vault_certificate.id
     }
   }
 }
