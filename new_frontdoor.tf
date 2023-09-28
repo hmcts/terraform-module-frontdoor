@@ -177,8 +177,20 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   host_name                = each.value.custom_domain
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type        = "CustomerCertificate"
+    minimum_tls_version     = "TLS12"
+    cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.certificate.id
+  }
+}
+
+resource "azurerm_cdn_frontdoor_secret" "certificate" {
+  name                     = "${var.project}-${var.env}-managed-secret"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+
+  secret {
+    customer_certificate {
+      key_vault_certificate_id = data.azurerm_key_vault_secret.certificate.name
+    }
   }
 }
 
