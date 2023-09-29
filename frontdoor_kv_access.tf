@@ -22,13 +22,12 @@ resource "azurerm_key_vault_access_policy" "frontdoor_premium_kv_access" {
   count        = var.add_access_policy == true ? 1 : 0
   key_vault_id = data.azurerm_key_vault.certificate_vault.id
 
-  object_id = "205478c0-bd83-4e1b-a9d6-db63a3e1e1c8"
-  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = jsondecode(azapi_update_resource.frontdoor_system_identity.output).identity.principalId
+  tenant_id = jsondecode(azapi_update_resource.frontdoor_system_identity.output).identity.tenantId
 
   secret_permissions      = ["Get", "List"]
   certificate_permissions = ["Get", "List"]
   key_permissions         = ["Get", "List"]
-  storage_permissions     = ["Get", "List"]
 }
 
 resource "azurerm_role_assignment" "frontdoor_premium_kv_access" {

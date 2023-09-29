@@ -13,7 +13,7 @@ resource "azapi_update_resource" "frontdoor_system_identity" {
       "type" : "SystemAssigned"
     }
   })
-  response_export_values = ["identity.principalId"]
+  response_export_values = ["identity.principalId","identity.tenantId"]
 
 }
 
