@@ -204,7 +204,6 @@ resource "azurerm_cdn_frontdoor_secret" "certificate" {
   secret {
     customer_certificate {
       key_vault_certificate_id  = data.azurerm_key_vault_certificate.certificate[each.key].id
-      subject_alternative_names = each.value.custom_domain
     }
   }
 }
