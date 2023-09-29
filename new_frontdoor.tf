@@ -203,7 +203,7 @@ resource "azurerm_cdn_frontdoor_secret" "certificate" {
 
   secret {
     customer_certificate {
-      key_vault_certificate_id  = data.azurerm_key_vault_certificate.certificate[each.key].name
+      key_vault_certificate_id  = data.azurerm_key_vault_certificate.certificate[each.key].id
     }
   }
 }
