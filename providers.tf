@@ -5,5 +5,11 @@ terraform {
       version = ">= 3.34.0"
       configuration_aliases = [ azurerm.public_dns ]
     }
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 1.0"
+    }
   }
 }
+
+provider "azapi" {}
