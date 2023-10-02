@@ -65,3 +65,14 @@ variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
   type        = string
 }
+variable "new_frontends" {
+  description = "Variable holds new frontdoor configuration"
+  type        = any
+  default     = {}
+}
+
+variable "front_door_sku_name" {
+  description = "Specifies the SKU for this Front Door Profile"
+  type        = string
+  default     = null
+}
