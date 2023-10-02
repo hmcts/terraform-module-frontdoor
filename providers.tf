@@ -8,7 +8,7 @@ terraform {
     azapi = {
       source                = "Azure/azapi"
       version               = "~> 1.0"
-      configuration_aliases = [azapi.frontdoor-azapi]
+      configuration_aliases = [azapi.frontdoor_azapi]
     }
   }
 }
