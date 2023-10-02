@@ -5,18 +5,18 @@ resource "azurerm_cdn_frontdoor_profile" "front_door" {
   tags                = var.common_tags
 }
 
-# resource "azapi_update_resource" "frontdoor_system_identity" {
-#   provider        = azapi.frontdoor_azapi
-#   type            = "Microsoft.Cdn/profiles@2023-02-01-preview"
-#   resource_id     = azurerm_cdn_frontdoor_profile.front_door.id
-#   body = jsonencode({
-#     "identity" : {
-#       "type" : "SystemAssigned"
-#     }
-#   })
-#   response_export_values = ["identity.principalId","identity.tenantId"]
+resource "azapi_update_resource" "frontdoor_system_identity" {
+  provider        = azapi.frontdoor_azapi
+  type            = "Microsoft.Cdn/profiles@2023-02-01-preview"
+  resource_id     = azurerm_cdn_frontdoor_profile.front_door.id
+  body = jsonencode({
+    "identity" : {
+      "type" : "SystemAssigned"
+    }
+  })
+  response_export_values = ["identity.principalId","identity.tenantId"]
 
-# }
+}
 
 
 resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
@@ -184,18 +184,6 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   https_redirect_enabled = true
 }
 
-resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
-  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
-  name                     = each.value.name
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-  host_name                = each.value.custom_domain
-
-  tls {
-    certificate_type        = "ManagedCertificate"
-    minimum_tls_version     = "TLS12"
-  }
-}
-
 # resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 #   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
 #   name                     = each.value.name
@@ -203,23 +191,35 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 #   host_name                = each.value.custom_domain
 
 #   tls {
-#     certificate_type        = "CustomerCertificate"
+#     certificate_type        = "ManagedCertificate"
 #     minimum_tls_version     = "TLS12"
-#     cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.certificate[each.key].id
 #   }
 # }
 
-# resource "azurerm_cdn_frontdoor_secret" "certificate" {
-#   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
-#   name                     = "${var.project}-${var.env}-managed-secret"
-#   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
+  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
+  name                     = each.value.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  host_name                = each.value.custom_domain
 
-#   secret {
-#     customer_certificate {
-#       key_vault_certificate_id  = data.azurerm_key_vault_certificate.certificate[each.key].id
-#     }
-#   }
-# }
+  tls {
+    certificate_type        = "CustomerCertificate"
+    minimum_tls_version     = "TLS12"
+    cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.certificate[each.key].id
+  }
+}
+
+resource "azurerm_cdn_frontdoor_secret" "certificate" {
+  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
+  name                     = "${var.project}-${var.env}-managed-secret"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+
+  secret {
+    customer_certificate {
+      key_vault_certificate_id  = data.azurerm_key_vault_certificate.certificate[each.key].id
+    }
+  }
+}
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_A" {
   for_each = {
