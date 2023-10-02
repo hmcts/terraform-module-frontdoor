@@ -6,15 +6,15 @@ resource "azurerm_cdn_frontdoor_profile" "front_door" {
 }
 
 resource "azapi_update_resource" "frontdoor_system_identity" {
-  provider        = azapi.frontdoor_azapi
-  type            = "Microsoft.Cdn/profiles@2023-02-01-preview"
-  resource_id     = azurerm_cdn_frontdoor_profile.front_door.id
+  provider    = azapi.frontdoor_azapi
+  type        = "Microsoft.Cdn/profiles@2023-02-01-preview"
+  resource_id = azurerm_cdn_frontdoor_profile.front_door.id
   body = jsonencode({
     "identity" : {
       "type" : "SystemAssigned"
     }
   })
-  response_export_values = ["identity.principalId","identity.tenantId"]
+  response_export_values = ["identity.principalId", "identity.tenantId"]
 
 }
 
@@ -191,8 +191,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   host_name                = each.value.custom_domain
 
   tls {
-    certificate_type        = "ManagedCertificate"
-    minimum_tls_version     = "TLS12"
+    certificate_type    = "ManagedCertificate"
+    minimum_tls_version = "TLS12"
   }
 }
 
@@ -216,7 +216,7 @@ resource "azurerm_cdn_frontdoor_secret" "certificate" {
 
   secret {
     customer_certificate {
-      key_vault_certificate_id  = data.azurerm_key_vault_certificate.certificate[each.key].id
+      key_vault_certificate_id = data.azurerm_key_vault_certificate.certificate[each.key].id
     }
   }
 }
@@ -258,18 +258,18 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 }
 
 data "azurerm_dns_zone" "public_dns_apex" {
-  for_each            = { for frontend in var.new_frontends : frontend.name => frontend
-                          if lookup(frontend, "is_apex", false) == true
-                        }
+  for_each = { for frontend in var.new_frontends : frontend.name => frontend
+    if lookup(frontend, "is_apex", false) == true
+  }
   provider            = azurerm.public_dns
   name                = each.value.custom_domain
   resource_group_name = "reformmgmtrg"
 }
 
 resource "azurerm_dns_txt_record" "public_dns_record_apex" {
-  for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
-                                              if lookup(frontend, "is_apex", false) == true
-                                             } : {}
+  for_each = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
+    if lookup(frontend, "is_apex", false) == true
+  } : {}
   provider            = azurerm.public_dns
   name                = "_dnsauth"
   zone_name           = data.azurerm_dns_zone.public_dns_apex[each.key].name
@@ -282,18 +282,18 @@ resource "azurerm_dns_txt_record" "public_dns_record_apex" {
 }
 
 data "azurerm_dns_zone" "public_dns" {
-  for_each            = { for frontend in var.new_frontends : frontend.name => frontend
-                          if lookup(frontend, "is_apex", false) != true
-                        }
+  for_each = { for frontend in var.new_frontends : frontend.name => frontend
+    if lookup(frontend, "is_apex", false) != true
+  }
   provider            = azurerm.public_dns
   name                = replace(each.value.custom_domain, "/^[^.]+\\./", "")
   resource_group_name = "reformmgmtrg"
 }
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
-  for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
-                                                if lookup(frontend, "is_apex", false) != true
-                                             } : {}
+  for_each = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
+    if lookup(frontend, "is_apex", false) != true
+  } : {}
   provider            = azurerm.public_dns
   name                = join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
   zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
@@ -306,10 +306,10 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
 }
 
 resource "azurerm_dns_cname_record" "cname" {
-depends_on          = [azurerm_cdn_frontdoor_route.routing_rule_A,azurerm_cdn_frontdoor_route.routing_rule_B,azurerm_cdn_frontdoor_route.routing_rule_C,azurerm_cdn_frontdoor_route.routing_rule_D, azurerm_cdn_frontdoor_security_policy.security_policy]
-for_each            = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
-                                                if lookup(frontend, "is_apex", false) != true
-                                           } : {}
+  depends_on = [azurerm_cdn_frontdoor_route.routing_rule_A, azurerm_cdn_frontdoor_route.routing_rule_B, azurerm_cdn_frontdoor_route.routing_rule_C, azurerm_cdn_frontdoor_route.routing_rule_D, azurerm_cdn_frontdoor_security_policy.security_policy]
+  for_each = var.add_txt_record ? { for frontend in var.new_frontends : frontend.name => frontend
+    if lookup(frontend, "is_apex", false) != true
+  } : {}
   provider            = azurerm.public_dns
   name                = element(split(".", each.value.custom_domain), 0)
   zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
