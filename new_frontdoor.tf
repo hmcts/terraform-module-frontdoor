@@ -272,8 +272,8 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
   } : {}
   provider            = azurerm.public_dns
   name                = each.value.is_apex ? "_dnsauth" : join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
-  zone_name           = data.azurerm_dns_zone.public_dns_apex[each.key].name
-  resource_group_name = data.azurerm_dns_zone.public_dns_apex[each.key].resource_group_name
+  zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
+  resource_group_name = data.azurerm_dns_zone.public_dns[each.key].resource_group_name
   ttl                 = 3600
 
   record {
