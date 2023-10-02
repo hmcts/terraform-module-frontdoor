@@ -184,19 +184,19 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   https_redirect_enabled = true
 }
 
-# resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
-#   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
-#   name                     = each.value.name
-#   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-#   host_name                = each.value.custom_domain
-
-#   tls {
-#     certificate_type        = "ManagedCertificate"
-#     minimum_tls_version     = "TLS12"
-#   }
-# }
-
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
+  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
+  name                     = each.value.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  host_name                = each.value.custom_domain
+
+  tls {
+    certificate_type        = "ManagedCertificate"
+    minimum_tls_version     = "TLS12"
+  }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain" "apex_custom_domain" {
   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
@@ -226,7 +226,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_A
     for frontend in var.new_frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
   }
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_custom_domain_id = frontend.is_apex ? azurerm_cdn_frontdoor_custom_domain.apex_custom_domain[each.key].id : azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_A[each.key].id]
 }
 
@@ -235,7 +235,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B
     for frontend in var.new_frontends : frontend.name => frontend
     if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
   }
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_custom_domain_id = frontend.is_apex ? azurerm_cdn_frontdoor_custom_domain.apex_custom_domain[each.key].id : azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_B[each.key].id]
 }
 
@@ -244,7 +244,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C
     for frontend in var.new_frontends : frontend.name => frontend
     if lookup(frontend, "www_redirect", false)
   }
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_custom_domain_id = frontend.is_apex ? azurerm_cdn_frontdoor_custom_domain.apex_custom_domain[each.key].id : azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_C[each.key].id]
 }
 
@@ -253,7 +253,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
     for frontend in var.new_frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) != null
   }
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_custom_domain_id = frontend.is_apex ? azurerm_cdn_frontdoor_custom_domain.apex_custom_domain[each.key].id : azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_D[each.key].id]
 }
 
