@@ -5,18 +5,18 @@ resource "azurerm_cdn_frontdoor_profile" "front_door" {
   tags                = var.common_tags
 }
 
-# resource "azapi_update_resource" "frontdoor_system_identity" {
-#   provider    = azapi.frontdoor_azapi
-#   type        = "Microsoft.Cdn/profiles@2023-02-01-preview"
-#   resource_id = azurerm_cdn_frontdoor_profile.front_door.id
-#   body = jsonencode({
-#     "identity" : {
-#       "type" : "SystemAssigned"
-#     }
-#   })
-#   response_export_values = ["identity.principalId", "identity.tenantId"]
+resource "azapi_update_resource" "frontdoor_system_identity" {
+  provider    = azapi.frontdoor_azapi
+  type        = "Microsoft.Cdn/profiles@2023-02-01-preview"
+  resource_id = azurerm_cdn_frontdoor_profile.front_door.id
+  body = jsonencode({
+    "identity" : {
+      "type" : "SystemAssigned"
+    }
+  })
+  response_export_values = ["identity.principalId", "identity.tenantId"]
 
-# }
+}
 
 
 resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
