@@ -14,7 +14,7 @@ data "azurerm_key_vault_secret" "certificate" {
 }
 
 data "azurerm_key_vault_certificate" "certificate" {
-  for_each = { for frontend in var.new_frontends :
+  for_each = { for frontend in var.frontends :
     frontend.name => frontend
     if lookup(frontend, "ssl_mode", var.ssl_mode) == "AzureKeyVault"
   }

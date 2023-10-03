@@ -67,7 +67,7 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
 ######## End defaults ########
 
 resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
-  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
+  for_each                 = { for frontend in var.frontends : frontend.name => frontend }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   session_affinity_enabled = false
@@ -90,7 +90,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
-  for_each                      = { for frontend in var.new_frontends : frontend.name => frontend }
+  for_each                      = { for frontend in var.frontends : frontend.name => frontend }
   name                          = each.value.name
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
 
@@ -106,7 +106,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
   }
   name                            = each.value.name
@@ -130,7 +130,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
   }
   name                            = "${each.value.name}HttpsRedirect"
@@ -150,7 +150,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "www_redirect", false)
   }
   name                            = "${each.value.name}wwwRedirect"
@@ -168,7 +168,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) != null
   }
   name                            = "${each.value.name}redirect"
@@ -185,7 +185,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
-  for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
+  for_each                 = { for frontend in var.frontends : frontend.name => frontend }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   host_name                = each.value.custom_domain
@@ -198,7 +198,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 }
 
 resource "azurerm_cdn_frontdoor_secret" "certificate" {
-  for_each = { for frontend in var.new_frontends : frontend.name => frontend
+  for_each = { for frontend in var.frontends : frontend.name => frontend
   if lookup(frontend, "ssl_mode", var.ssl_mode) == "AzureKeyVault" }
   name                     = "${var.project}-${var.env}-managed-secret"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
@@ -212,7 +212,7 @@ resource "azurerm_cdn_frontdoor_secret" "certificate" {
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_A" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
   }
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
@@ -221,7 +221,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_A
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
   }
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
@@ -230,7 +230,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "www_redirect", false)
   }
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
@@ -239,7 +239,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D" {
   for_each = {
-    for frontend in var.new_frontends : frontend.name => frontend
+    for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) != null
   }
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
