@@ -70,6 +70,7 @@ variable "log_analytics_workspace_id" {
 variable "front_door_sku_name" {
   description = "Specifies the SKU for this Front Door Profile"
   type        = string
+  default     = "Premium_AzureFrontDoor"
 }
 
 variable "add_txt_record" {
