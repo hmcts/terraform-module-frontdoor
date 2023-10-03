@@ -197,20 +197,6 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   }
 }
 
-# resource "azurerm_cdn_frontdoor_custom_domain" "apex_custom_domain" {
-#   for_each = { for frontend in var.new_frontends : frontend.name => frontend
-#   if lookup(frontend, "ssl_mode", var.ssl_mode) == "AzureKeyVault" }
-#   name                     = each.value.name
-#   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-#   host_name                = each.value.custom_domain
-
-#   tls {
-#     certificate_type        = "CustomerCertificate"
-#     minimum_tls_version     = "TLS12"
-#     cdn_frontdoor_secret_id = azurerm_cdn_frontdoor_secret.certificate[each.key].id
-#   }
-# }
-
 resource "azurerm_cdn_frontdoor_secret" "certificate" {
   for_each = { for frontend in var.new_frontends : frontend.name => frontend
   if lookup(frontend, "ssl_mode", var.ssl_mode) == "AzureKeyVault" }
