@@ -72,9 +72,3 @@ variable "front_door_sku_name" {
   type        = string
   default     = "Premium_AzureFrontDoor"
 }
-
-variable "add_txt_record" {
-  type        = bool
-  description = "Boolean to create dns txt record resource or not"
-  default     = true
-}
