@@ -73,7 +73,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
 
 resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
   for_each                 = { for frontend in var.new_frontends : frontend.name => frontend }
-  name                     = "${each.value.name}${var.env}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}-securityPolicy"
+  name                     = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}-securityPolicy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 
   security_policies {
