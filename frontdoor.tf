@@ -1,249 +1,247 @@
-# resource "azurerm_frontdoor" "main" {
-#   name                = "${var.project}-${var.env}"
-#   resource_group_name = var.resource_group
-#   friendly_name       = "${var.project}-${var.env}"
+resource "azurerm_cdn_frontdoor_profile" "front_door" {
+  name                = "${var.project}-${var.env}"
+  resource_group_name = var.resource_group
+  sku_name            = var.front_door_sku_name
+  tags                = var.common_tags
+}
 
-#   ######## Defaults ########
-#   backend_pool_settings {
-#     enforce_backend_pools_certificate_name_check = var.certificate_name_check
-#   }
+resource "azapi_update_resource" "frontdoor_system_identity" {
+  type        = "Microsoft.Cdn/profiles@2023-02-01-preview"
+  resource_id = azurerm_cdn_frontdoor_profile.front_door.id
+  body = jsonencode({
+    "identity" : {
+      "type" : "SystemAssigned"
+    }
+  })
+  response_export_values = ["identity.principalId", "identity.tenantId"]
 
-#   frontend_endpoint {
-#     name      = "${var.project}-${var.env}-azurefd-net"
-#     host_name = "${var.project}-${var.env}.azurefd.net"
-#   }
+}
 
-#   backend_pool_load_balancing {
-#     name = "defaultLoadBalancing"
-#   }
 
-#   backend_pool_health_probe {
-#     name = "defaultHealthProbe"
-#   }
+resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
+  name                     = "${var.project}-${var.env}"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  tags                     = var.common_tags
+}
+######## Defaults ########
+resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
+  name                     = "defaultBackend"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  session_affinity_enabled = false
 
-#   # Default backend
-#   backend_pool {
-#     name = "defaultBackend"
-#     backend {
-#       host_header = "www.bing.com"
-#       address     = "www.bing.com"
-#       http_port   = 80
-#       https_port  = 443
-#     }
+  load_balancing {
+    sample_size                        = 4
+    successful_samples_required        = 2
+    additional_latency_in_milliseconds = 0
+  }
+}
 
-#     load_balancing_name = "defaultLoadBalancing"
-#     health_probe_name   = "defaultHealthProbe"
-#   }
+resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
+  name                          = "defaultBackend"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
 
-#   # Defualt routing rule for default frontend host
-#   routing_rule {
-#     name               = "defaultRouting"
-#     accepted_protocols = ["Http", "Https"]
-#     patterns_to_match  = ["/*"]
-#     frontend_endpoints = ["${var.project}-${var.env}-azurefd-net"]
-#     forwarding_configuration {
-#       forwarding_protocol = "MatchRequest"
-#       backend_pool_name   = "defaultBackend"
-#     }
-#   }
-#   ######## End defaults ########
+  enabled                        = true
+  host_name                      = "www.bing.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.bing.com"
+  priority                       = 1
+  weight                         = 50
+  certificate_name_check_enabled = true
+}
 
-#   ######## Regular frontends ########
-#   dynamic "frontend_endpoint" {
-#     iterator = host
-#     for_each = var.frontends
-#     content {
-#       name                                    = host.value["name"]
-#       host_name                               = host.value["custom_domain"]
-#       web_application_firewall_policy_link_id = lookup(host.value, "redirect", null) == null ? azurerm_frontdoor_firewall_policy.custom[host.value["name"]].id : null
-#       # WARNING: avoid this at all costs and try to keep your application stateless.
-#       session_affinity_enabled = lookup(host.value, "session_affinity", false)
-#       # WARNING: avoid session affinity at all costs and try to keep your application stateless.
-#       session_affinity_ttl_seconds = lookup(host.value, "session_affinity_ttl_seconds", 0)
-#     }
-#   }
+resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
+  name                            = "defaultRouting"
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
+  cdn_frontdoor_custom_domain_ids = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group}/providers/Microsoft.Cdn/profiles/${azurerm_cdn_frontdoor_profile.front_door.name}/customDomains/${azurerm_cdn_frontdoor_profile.front_door.name}-azurefd-net"]
+  enabled                         = true
 
-#   ######## Additional www frontend ########
-#   dynamic "frontend_endpoint" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
-#     ]
-#     content {
-#       name      = "www${host.value["name"]}"
-#       host_name = "www.${host.value["custom_domain"]}"
-#     }
-#   }
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
+  forwarding_protocol    = "MatchRequest"
+  link_to_default_domain = true
+  https_redirect_enabled = false
+}
+######## End defaults ########
 
-#   dynamic "backend_pool_load_balancing" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
-#     ]
-#     content {
-#       name                            = "loadBalancingSettings-${host.value["name"]}"
-#       sample_size                     = 4
-#       successful_samples_required     = 2
-#       additional_latency_milliseconds = 0
-#     }
-#   }
+resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
+  for_each                 = { for frontend in var.frontends : frontend.name => frontend }
+  name                     = each.value.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  session_affinity_enabled = false
 
-#   dynamic "backend_pool_health_probe" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
-#     ]
-#     content {
-#       name                = "healthProbeSettings-${host.value["name"]}"
-#       interval_in_seconds = 120
-#       path                = lookup(host.value, "health_path", "/health/liveness")
-#       protocol            = lookup(host.value, "health_protocol", "Http")
-#     }
-#   }
+  load_balancing {
+    sample_size                        = 4
+    successful_samples_required        = 2
+    additional_latency_in_milliseconds = 0
+  }
 
-#   dynamic "backend_pool" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "backend_domain", []) != [] ? true : false
-#     ]
-#     content {
-#       name = host.value["name"]
-#       dynamic "backend" {
-#         iterator = domain
-#         for_each = host.value["backend_domain"]
-#         content {
-#           host_header = lookup(host.value, "host_header", host.value["custom_domain"])
-#           address     = domain.value
-#           http_port   = lookup(host.value, "http_port", 80)
-#           https_port  = 443
-#           priority    = 1
-#           weight      = 50
-#         }
-#       }
+  # There's no point adding a health probe with a single backend, it just adds a lot of traffic for no benefit
+  dynamic "health_probe" {
+    for_each = length(each.value["backend_domain"]) > 1 ? [1] : []
+    content {
+      path                = lookup(each.value, "health_path", "/health/liveness")
+      protocol            = lookup(each.value, "health_protocol", "Http")
+      interval_in_seconds = 120
+    }
+  }
+}
 
-#       load_balancing_name = "loadBalancingSettings-${host.value["name"]}"
-#       health_probe_name   = "healthProbeSettings-${host.value["name"]}"
-#     }
-#   }
+resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
+  for_each                      = { for frontend in var.frontends : frontend.name => frontend }
+  name                          = each.value.name
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
 
-#   dynamic "routing_rule" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) == null
-#     ]
+  enabled                        = true
+  host_name                      = each.value.backend_domain[0]
+  http_port                      = lookup(each.value, "http_port", 80)
+  https_port                     = 443
+  origin_host_header             = each.value.custom_domain
+  priority                       = 1
+  weight                         = 50
+  certificate_name_check_enabled = true
+}
 
-#     content {
-#       name               = host.value["name"]
-#       accepted_protocols = lookup(host.value, "enable_ssl", true) ? ["Https"] : ["Http"]
-#       patterns_to_match  = lookup(host.value, "url_patterns", ["/*"])
-#       frontend_endpoints = [host.value["name"]]
+resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "redirect", null) == null
+  }
+  name                            = each.value.name
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
+  enabled                         = true
 
-#       forwarding_configuration {
-#         forwarding_protocol                   = lookup(host.value, "forwarding_protocol", "HttpOnly")
-#         backend_pool_name                     = lookup(host.value, "backend_domain", []) == [] ? host.value["backend"] : host.value["name"]
-#         cache_enabled                         = lookup(host.value, "cache_enabled", "true")
-#         cache_query_parameter_strip_directive = lookup(host.value, "cache_enabled", []) == [] ? "StripNone" : "StripAll"
-#         cache_use_dynamic_compression         = false
-#         custom_forwarding_path                = ""
-#       }
-#     }
-#   }
+  cache {
+    compression_enabled           = false
+    query_string_caching_behavior = "UseQueryString"
+  }
 
-#   dynamic "routing_rule" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
-#     ]
-#     content {
-#       name               = "${host.value["name"]}HttpsRedirect"
-#       accepted_protocols = ["Http"]
-#       patterns_to_match  = ["/*"]
-#       frontend_endpoints = [host.value["name"]]
+  supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
+  patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
+  forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
+  link_to_default_domain = false
+  https_redirect_enabled = false
+}
 
-#       redirect_configuration {
-#         redirect_protocol = "HttpsOnly"
-#         redirect_type     = "Moved"
-#       }
-#     }
-#   }
+resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
+  }
+  name                            = "${each.value.name}HttpsRedirect"
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
+  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.https_redirect.id]
+  enabled                         = true
 
-#   dynamic "routing_rule" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "www_redirect", false)
-#     ]
-#     content {
-#       name               = "${host.value["name"]}wwwRedirect"
-#       accepted_protocols = ["Http", "Https"]
-#       patterns_to_match  = ["/*"]
-#       frontend_endpoints = ["www${host.value["name"]}"]
+  supported_protocols    = ["Http"]
+  patterns_to_match      = ["/*"]
+  forwarding_protocol    = "MatchRequest"
+  link_to_default_domain = false
+  https_redirect_enabled = false
+}
 
-#       redirect_configuration {
-#         redirect_protocol = "HttpsOnly"
-#         redirect_type     = "Moved"
-#         custom_host       = host.value["custom_domain"]
-#       }
-#     }
-#   }
+resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
+  name                            = "${each.value.name}wwwRedirect"
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
+  enabled                         = true
 
-#   dynamic "routing_rule" {
-#     iterator = host
-#     for_each = [
-#       for frontend in var.frontends : frontend if lookup(frontend, "redirect", null) != null
-#     ]
-#     content {
-#       name               = "${host.value["name"]}redirect"
-#       accepted_protocols = ["Http", "Https"]
-#       patterns_to_match  = ["/*"]
-#       frontend_endpoints = [host.value["name"]]
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
+  link_to_default_domain = true
+  https_redirect_enabled = true
+}
 
-#       redirect_configuration {
-#         redirect_protocol = "HttpsOnly"
-#         redirect_type     = "Moved"
-#         custom_host       = host.value["redirect"]
-#       }
-#     }
-#   }
+resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "redirect", null) != null
+  }
+  name                            = "${each.value.name}redirect"
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
+  enabled                         = true
 
-#   ######## End regular frontends ########
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
+  link_to_default_domain = true
+  https_redirect_enabled = true
+}
 
-#   tags = var.common_tags
+resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
+  for_each                 = { for frontend in var.frontends : frontend.name => frontend }
+  name                     = each.value.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  host_name                = each.value.custom_domain
 
-#   depends_on = [azurerm_frontdoor_firewall_policy.custom, azurerm_key_vault_access_policy.frontdoor_kv_access]
-# }
+  tls {
+    certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
+    minimum_tls_version     = "TLS12"
+    cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
+  }
+}
 
-# resource "azurerm_frontdoor_custom_https_configuration" "https" {
-#   for_each = { for frontend in var.frontends :
-#     frontend.name => frontend
-#     if lookup(frontend, "enable_ssl", true)
-#   }
+resource "azurerm_cdn_frontdoor_secret" "certificate" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if lookup(frontend, "ssl_mode", var.ssl_mode) == "AzureKeyVault" }
+  name                     = "${var.project}-${var.env}-managed-secret"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 
-#   frontend_endpoint_id              = "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_frontdoor.main.resource_group_name}/providers/Microsoft.Network/frontDoors/${azurerm_frontdoor.main.name}/frontendEndpoints/${each.value["name"]}"
-#   custom_https_provisioning_enabled = true
+  secret {
+    customer_certificate {
+      key_vault_certificate_id = data.azurerm_key_vault_certificate.certificate[each.key].id
+    }
+  }
+}
 
-#   custom_https_configuration {
-#     // apex domains aren't supported by managed mode, so we are keeping support for custom ssl
-#     certificate_source                      = lookup(each.value, "ssl_mode", var.ssl_mode)
-#     azure_key_vault_certificate_secret_name = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
-#     azure_key_vault_certificate_vault_id    = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
-#   }
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_A" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "redirect", null) == null
+  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_A[each.key].id]
+}
 
-#   depends_on = [azurerm_frontdoor.main]
-# }
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "enable_ssl", true) && lookup(frontend, "redirect", null) == null
+  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_B[each.key].id]
+}
 
-# resource "azurerm_frontdoor_custom_https_configuration" "https_www_redirect" {
-#   for_each = { for frontend in var.frontends :
-#     frontend.name => frontend
-#     if lookup(frontend, "www_redirect", false)
-#   }
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_C[each.key].id]
+}
 
-#   frontend_endpoint_id              = "${azurerm_frontdoor.main.id}/frontendEndpoints/www${each.value["name"]}"
-#   custom_https_provisioning_enabled = true
-
-#   custom_https_configuration {
-#     // apex domains aren't supported by managed mode, so we are keeping support for custom ssl
-#     certificate_source                      = lookup(each.value, "ssl_mode", var.ssl_mode)
-#     azure_key_vault_certificate_secret_name = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault_secret.certificate[each.value["name"]].name : null
-#     azure_key_vault_certificate_vault_id    = lookup(each.value, "ssl_mode", var.ssl_mode) == "AzureKeyVault" ? data.azurerm_key_vault.certificate_vault.id : null
-#   }
-# }
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "redirect", null) != null
+  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_D[each.key].id]
+}
