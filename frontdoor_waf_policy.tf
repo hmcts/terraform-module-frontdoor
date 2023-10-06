@@ -111,3 +111,30 @@ resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
     }
   }
 }
+
+resource "azurerm_cdn_frontdoor_rule_set" "redirect_hostname_rule_set" {
+  name                     = "hostnameredirectruleset"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+}
+
+resource "azurerm_cdn_frontdoor_rule" "redirect_hostname" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "redirect", null) != null
+  }
+  name = "${each.value.name}redirectrule"
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set.id
+  order                     = 1
+  behavior_on_match         = "Continue"
+
+  actions {
+    url_redirect_action {
+      redirect_type        = "Moved"
+      redirect_protocol    = "Https"
+      destination_hostname = each.value.redirect
+    }
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
+}

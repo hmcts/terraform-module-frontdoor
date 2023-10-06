@@ -104,6 +104,21 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   certificate_name_check_enabled = true
 }
 
+resource "azurerm_cdn_frontdoor_origin" "www_redirect_front_door_origin" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if lookup(frontend, "www_redirect", false) }
+  name                          = each.value.name
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+
+  enabled                        = true
+  host_name                      = "www.${each.value.backend_domain[0]}"
+  http_port                      = lookup(each.value, "http_port", 80)
+  https_port                     = 443
+  origin_host_header             = each.value.custom_domain
+  priority                       = 1
+  weight                         = 50
+  certificate_name_check_enabled = true
+}
 resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
@@ -126,6 +141,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
   link_to_default_domain = false
   https_redirect_enabled = false
+  depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
@@ -146,6 +162,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   forwarding_protocol    = "MatchRequest"
   link_to_default_domain = false
   https_redirect_enabled = false
+  depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
@@ -156,7 +173,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   name                            = "${each.value.name}wwwRedirect"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.www_redirect_front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
   enabled                         = true
 
@@ -164,6 +181,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   patterns_to_match      = ["/*"]
   link_to_default_domain = true
   https_redirect_enabled = true
+  depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.www_redirect_front_door_origin]
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
@@ -176,12 +194,13 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
+  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set.id]
   enabled                         = true
 
-  supported_protocols    = ["Http", "Https"]
-  patterns_to_match      = ["/*"]
-  link_to_default_domain = true
-  https_redirect_enabled = true
+  supported_protocols = ["Http", "Https"]
+  patterns_to_match   = ["/*"]
+
+  depends_on = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
@@ -245,3 +264,4 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_D[each.key].id]
 }
+
