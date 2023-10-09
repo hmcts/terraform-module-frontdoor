@@ -10,5 +10,3 @@ terraform {
     }
   }
 }
-
-provider "azapi" {}
