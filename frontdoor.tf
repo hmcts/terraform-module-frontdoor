@@ -159,7 +159,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   name                            = "${each.value.name}wwwRedirect"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
   cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set.id]
   enabled                         = true
