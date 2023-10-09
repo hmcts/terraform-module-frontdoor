@@ -151,6 +151,39 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 }
 
+
+################ ################  www_redirect ################ 
+resource "azurerm_cdn_frontdoor_origin_group" "www_origin_group" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if lookup(frontend, "www_redirect", false) }
+  name                     = "${each.value.name}wwwgroup"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  session_affinity_enabled = false
+
+  load_balancing {
+    sample_size                        = 4
+    successful_samples_required        = 2
+    additional_latency_in_milliseconds = 0
+  }
+
+}
+
+resource "azurerm_cdn_frontdoor_origin" "www_front_door_origin" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if lookup(frontend, "www_redirect", false) }
+  name                          = "${each.value.name}wwworigin"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.www_origin_group[each.key].id
+
+  enabled                        = true
+  host_name                      = each.value.backend_domain[0]
+  http_port                      = lookup(each.value, "http_port", 80)
+  https_port                     = 443
+  origin_host_header             = "www.${each.value.custom_domain}"
+  priority                       = 1
+  weight                         = 50
+  certificate_name_check_enabled = true
+}
+
 resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
@@ -158,8 +191,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   }
   name                            = "${each.value.name}wwwRedirect"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.www_origin_group[each.key].id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.www_front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
   cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set.id]
   enabled                         = true
@@ -168,8 +201,10 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   patterns_to_match      = ["/*"]
   link_to_default_domain = true
   https_redirect_enabled = true
-  depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
+  depends_on             = [azurerm_cdn_frontdoor_origin_group.www_origin_group, azurerm_cdn_frontdoor_origin.www_front_door_origin]
 }
+
+################ END of  www_redirect ################ 
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   for_each = {
