@@ -206,7 +206,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
   if lookup(frontend, "www_redirect", false) }
-  name                     = each.value.name
+  name                     = "www${each.value.name}"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   host_name                = "www.${each.value.custom_domain}"
 
