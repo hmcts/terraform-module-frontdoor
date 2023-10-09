@@ -149,7 +149,7 @@ resource "azurerm_cdn_frontdoor_rule" "redirect_www" {
     for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "www_redirect", false)
   }
-  name = "${each.value.name}wwwredirectrule"
+  name = replace("${each.value.name}wwwredirectrule", "-", "")
 
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set.id
   order                     = 1
