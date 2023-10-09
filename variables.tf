@@ -50,6 +50,16 @@ variable "key_vault_resource_group" {
   type        = string
 }
 
+variable "send_access_logs_to_log_analytics" {
+  description = "Send access logs to log analytics workspace, this can be quite expensive on busy FrontDoor instances so disable it and send to Storage account instead"
+  default     = true
+}
+
+variable "diagnostics_storage_account_id" {
+  description = "ID of a storage account to send access logs to."
+  default     = null
+}
+
 variable "add_access_policy" {
   default     = true
   type        = bool
