@@ -153,6 +153,35 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
 
 
 ################ ################  www_redirect ################ 
+
+resource "azurerm_cdn_frontdoor_rule_set" "www_redirect_rule_set" {
+  name                     = "wwwredirectruleset"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+}
+
+resource "azurerm_cdn_frontdoor_rule" "redirect_www" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
+  name = replace("${each.value.name}wwwredirectrule", "-", "")
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set.id
+  order                     = 1
+  behavior_on_match         = "Continue"
+
+  actions {
+    url_redirect_action {
+      redirect_type        = "Moved"
+      redirect_protocol    = "Https"
+      destination_hostname = each.value.custom_domain
+    }
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
+}
+
+
 resource "azurerm_cdn_frontdoor_origin_group" "www_origin_group" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
   if lookup(frontend, "www_redirect", false) }
@@ -201,9 +230,31 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   patterns_to_match      = ["/*"]
   link_to_default_domain = true
   https_redirect_enabled = true
-  depends_on             = [azurerm_cdn_frontdoor_origin_group.www_origin_group, azurerm_cdn_frontdoor_origin.www_front_door_origin]
+  depends_on             = [azurerm_cdn_frontdoor_origin_group.www_origin_group, azurerm_cdn_frontdoor_origin.www_front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
 }
 
+resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if lookup(frontend, "www_redirect", false) }
+  name                     = "www${each.value.name}"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  host_name                = "www.${each.value.custom_domain}"
+
+  tls {
+    certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
+    minimum_tls_version     = "TLS12"
+    cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
+  }
+}
+
+resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
+  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id
+  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_C[each.key].id]
+}
 ################ END of  www_redirect ################ 
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
@@ -238,19 +289,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-  if lookup(frontend, "www_redirect", false) }
-  name                     = "www${each.value.name}"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-  host_name                = "www.${each.value.custom_domain}"
 
-  tls {
-    certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
-    minimum_tls_version     = "TLS12"
-    cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
-  }
-}
 
 resource "azurerm_cdn_frontdoor_secret" "certificate" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
@@ -283,14 +322,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_B
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_B[each.key].id]
 }
 
-resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
-  for_each = {
-    for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "www_redirect", false)
-  }
-  cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
-  cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_C[each.key].id]
-}
+
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D" {
   for_each = {

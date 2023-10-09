@@ -139,29 +139,4 @@ resource "azurerm_cdn_frontdoor_rule" "redirect_hostname" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
 }
 
-resource "azurerm_cdn_frontdoor_rule_set" "www_redirect_rule_set" {
-  name                     = "wwwredirectruleset"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-}
 
-resource "azurerm_cdn_frontdoor_rule" "redirect_www" {
-  for_each = {
-    for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "www_redirect", false)
-  }
-  name = replace("${each.value.name}wwwredirectrule", "-", "")
-
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set.id
-  order                     = 1
-  behavior_on_match         = "Continue"
-
-  actions {
-    url_redirect_action {
-      redirect_type        = "Moved"
-      redirect_protocol    = "Https"
-      destination_hostname = each.value.custom_domain
-    }
-  }
-
-  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
-}
