@@ -278,8 +278,9 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id]
   enabled                         = true
 
-  supported_protocols = ["Http", "Https"]
-  patterns_to_match   = ["/*"]
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
+  link_to_default_domain = false
 
   depends_on = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 }
