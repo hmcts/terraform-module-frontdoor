@@ -238,7 +238,8 @@ resource "azurerm_cdn_frontdoor_rule_set" "redirect_hostname_rule_set" {
     if lookup(frontend, "redirect", null) != null
   }
 
-  name                     = "${each.value.name}redirectruleset"
+  name = replace("${each.value.name}redirectruleset", "-", "")
+
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 }
 
@@ -247,7 +248,7 @@ resource "azurerm_cdn_frontdoor_rule" "redirect_hostname" {
     for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) != null
   }
-  name = "${each.value.name}redirectrule"
+  name = replace("${each.value.name}redirectrule", "-", "")
 
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id
   order                     = 1
