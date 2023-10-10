@@ -155,7 +155,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
 ################ ################  www_redirect ################ 
 
 resource "azurerm_cdn_frontdoor_rule_set" "www_redirect_rule_set" {
-  name                     = "wwwredirectruleset"
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
+  name                     = replace("${each.value.name}wwwredirectruleset", "-", "")
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 }
 
@@ -166,7 +170,7 @@ resource "azurerm_cdn_frontdoor_rule" "redirect_www" {
   }
   name = replace("${each.value.name}wwwredirectrule", "-", "")
 
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set.id
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id
   order                     = 1
   behavior_on_match         = "Continue"
 
@@ -191,7 +195,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
-  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set.id]
+  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id]
   enabled                         = true
 
   supported_protocols    = ["Http", "Https"]
