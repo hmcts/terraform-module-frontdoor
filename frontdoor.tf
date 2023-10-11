@@ -67,7 +67,8 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
 ######## End defaults ########
 
 resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
-  for_each                 = { for frontend in var.frontends : frontend.name => frontend }
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if lookup(frontend, "backend_domain", []) != [] ? true : false }
   name                     = each.value.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   session_affinity_enabled = false
@@ -90,7 +91,8 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
-  for_each                      = { for frontend in var.frontends : frontend.name => frontend }
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if lookup(frontend, "backend_domain", []) != [] ? true : false }
   name                          = each.value.name
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
 
