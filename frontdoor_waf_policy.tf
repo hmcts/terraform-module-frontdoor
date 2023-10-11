@@ -7,6 +7,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   sku_name            = azurerm_cdn_frontdoor_profile.front_door.sku_name
   enabled             = true
   mode                = lookup(each.value, "mode", "Prevention")
+  redirect_url        = lookup(each.value, "redirect_url", null)
   tags                = var.common_tags
 
   managed_rule {
