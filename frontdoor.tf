@@ -112,7 +112,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   }
   name                            = each.value.name
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+  cdn_frontdoor_origin_group_id   = lookup(each.value, "backend_domain", []) == [] ? azurerm_cdn_frontdoor_origin_group.origin_group[each.value.backend].id : azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
   enabled                         = true
