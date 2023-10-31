@@ -256,7 +256,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin_redirect" {
     if lookup(frontend, "backend_domain", []) == [] && lookup(frontend, "redirect", null) != null
   }
   name                          = each.value.name
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group_redirect[each.key].id
 
   enabled                        = true
   host_name                      = lookup(each.value, "host_header", each.value.custom_domain)
