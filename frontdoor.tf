@@ -61,7 +61,7 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
   forwarding_protocol    = "MatchRequest"
-  link_to_default_domain = true
+  link_to_default_domain = false
   https_redirect_enabled = false
 }
 ######## End defaults ########
