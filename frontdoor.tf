@@ -234,6 +234,39 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C
 
 ################  redirect ################ 
 
+
+resource "azurerm_cdn_frontdoor_origin_group" "origin_group_redirect" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "backend_domain", []) == [] && lookup(frontend, "redirect", null) != null
+  }
+  name                     = each.value.name
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+  session_affinity_enabled = false
+
+  load_balancing {
+    sample_size                        = 4
+    successful_samples_required        = 2
+    additional_latency_in_milliseconds = 0
+  }
+
+}
+
+resource "azurerm_cdn_frontdoor_origin" "front_door_origin_redirect" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "backend_domain", []) == [] && lookup(frontend, "redirect", null) != null
+  }
+  name                          = each.value.name
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+
+  enabled                        = true
+  host_name                      = lookup(each.value, "host_header", each.value.custom_domain)
+  http_port                      = lookup(each.value, "http_port", 80)
+  https_port                     = 443
+  priority                       = 1
+  weight                         = 50
+  certificate_name_check_enabled = true
+}
+
 resource "azurerm_cdn_frontdoor_rule_set" "redirect_hostname_rule_set" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
@@ -264,7 +297,7 @@ resource "azurerm_cdn_frontdoor_rule" "redirect_hostname" {
     }
   }
 
-  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin, azurerm_cdn_frontdoor_origin_group.origin_group_redirect, azurerm_cdn_frontdoor_origin.front_door_origin_redirect]
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
@@ -274,8 +307,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   }
   name                            = "${each.value.name}redirect"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group_redirect[each.key].id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin_redirect[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
   cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id]
   enabled                         = true
@@ -284,7 +317,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   patterns_to_match      = ["/*"]
   link_to_default_domain = false
 
-  depends_on = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin, azurerm_cdn_frontdoor_origin_group.origin_group_redirect, azurerm_cdn_frontdoor_origin.front_door_origin_redirect]
 }
 
 ################ end of redirect ################ 
