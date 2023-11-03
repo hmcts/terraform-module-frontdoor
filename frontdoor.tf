@@ -103,7 +103,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
   priority                       = 1
   weight                         = 50
-  certificate_name_check_enabled = lookup(each.value, "host_header", null) == null ? true : false
+  certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", false) == false ? false : true
 }
 
 
@@ -120,7 +120,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   enabled                         = true
 
   dynamic "cache" {
-    for_each = lookup(each.value, "host_header", null) == null ? [1] : []
+    for_each = lookup(each.value, "cache_enabled", "true") == "true" ? [1] : []
     content {
       compression_enabled           = false
       query_string_caching_behavior = "UseQueryString"
