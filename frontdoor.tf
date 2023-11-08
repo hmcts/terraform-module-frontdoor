@@ -342,7 +342,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 resource "azurerm_cdn_frontdoor_secret" "certificate" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
   if lookup(frontend, "ssl_mode", var.ssl_mode) == "AzureKeyVault" }
-  name                     = "${var.project}-${var.env}-managed-secret"
+  name                     = "${replace("${each.value.name}", "-", "")}-managed-secret"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 
   secret {
