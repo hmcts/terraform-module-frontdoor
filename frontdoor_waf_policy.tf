@@ -1,18 +1,20 @@
-resource "azurerm_frontdoor_firewall_policy" "custom" {
-  for_each = { for frontend in var.frontends :
-    frontend.name => frontend
+resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
   }
-  name                = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}"
+  name                = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
   resource_group_name = var.resource_group
-  tags                = var.common_tags
+  sku_name            = azurerm_cdn_frontdoor_profile.front_door.sku_name
   enabled             = true
   mode                = lookup(each.value, "mode", "Prevention")
   redirect_url        = lookup(each.value, "redirect_url", null)
+  tags                = var.common_tags
+
 
   managed_rule {
     type    = "DefaultRuleSet"
     version = "1.0"
+    action  = "Block"
 
     dynamic "exclusion" {
       iterator = exclusion
@@ -45,11 +47,9 @@ resource "azurerm_frontdoor_firewall_policy" "custom" {
       }
     }
   }
-
   dynamic "custom_rule" {
     iterator = custom_rule
     for_each = lookup(each.value, "custom_rules", [])
-
     content {
       name     = custom_rule.value.name
       enabled  = true
@@ -68,6 +68,50 @@ resource "azurerm_frontdoor_firewall_policy" "custom" {
           transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
         }
       }
+    }
+  }
+}
+
+
+resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "redirect", null) == null
+  }
+  name                     = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}-securityPolicy"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.custom[each.key].id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+        }
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+
+resource "azurerm_cdn_frontdoor_rule_set" "https_redirect" {
+  name                     = "httpsredirect"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+}
+
+resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
+
+  name                      = "httpsredirectrule"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.https_redirect.id
+  order                     = 1
+  behavior_on_match         = "Continue"
+
+  actions {
+    url_redirect_action {
+      redirect_type        = "Moved"
+      destination_hostname = ""
+      redirect_protocol    = "Https"
     }
   }
 }

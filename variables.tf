@@ -20,6 +20,7 @@ variable "frontends" {
   description = "Variable holds frontdoor configuration"
   type        = any
 }
+
 variable "subscription_id" {
   description = "Enter ID of subscription frontdoor is deployed to"
   type        = string
@@ -28,11 +29,6 @@ variable "subscription_id" {
 variable "send_access_logs_to_log_analytics" {
   description = "Send access logs to log analytics workspace, this can be quite expensive on busy FrontDoor instances so disable it and send to Storage account instead"
   default     = true
-}
-
-variable "diagnostics_storage_account_id" {
-  description = "ID of a storage account to send access logs to."
-  default     = null
 }
 
 variable "ssl_mode" {
@@ -60,6 +56,12 @@ variable "key_vault_resource_group" {
   type        = string
 }
 
+
+variable "diagnostics_storage_account_id" {
+  description = "ID of a storage account to send access logs to."
+  default     = null
+}
+
 variable "add_access_policy" {
   default     = true
   type        = bool
@@ -76,14 +78,9 @@ variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
   type        = string
 }
-variable "new_frontends" {
-  description = "Variable holds new frontdoor configuration"
-  type        = any
-  default     = {}
-}
 
 variable "front_door_sku_name" {
   description = "Specifies the SKU for this Front Door Profile"
   type        = string
-  default     = null
+  default     = "Premium_AzureFrontDoor"
 }
