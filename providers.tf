@@ -10,3 +10,10 @@ terraform {
     }
   }
 }
+
+provider "azurerm" {
+  alias = "public_dns"
+
+  features {}
+  subscription_id = local.dns_zone_subscription
+}
