@@ -386,7 +386,7 @@ data "azurerm_dns_zone" "public_dns" {
     if lookup(frontend, "add_txt_record", false)
   }
   provider            = azurerm.public_dns
-  name                = each.value.is_apex ? each.value.custom_domain : replace(each.value.custom_domain, "/^[^.]+\\./", "")
+  name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? each.value.custom_domain : replace(each.value.custom_domain, "/^[^.]+\\./", "")
   resource_group_name = "reformmgmtrg"
 }
 
@@ -395,7 +395,7 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
     if lookup(frontend, "add_txt_record", false)
   }
   provider            = azurerm.public_dns
-  name                = each.value.is_apex ? "_dnsauth" : join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
+  name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "_dnsauth" : join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
   zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
   resource_group_name = data.azurerm_dns_zone.public_dns[each.key].resource_group_name
   ttl                 = 3600
