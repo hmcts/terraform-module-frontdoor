@@ -25,6 +25,17 @@ variable "subscription_id" {
   description = "Enter ID of subscription frontdoor is deployed to"
   type        = string
 }
+
+variable "send_access_logs_to_log_analytics" {
+  description = "Send access logs to log analytics workspace, this can be quite expensive on busy FrontDoor instances so disable it and send to Storage account instead"
+  default     = true
+}
+
+variable "diagnostics_storage_account_id" {
+  description = "ID of a storage account to send access logs to."
+  default     = null
+}
+
 variable "ssl_mode" {
   description = "Certificate source to encrypt HTTPS traffic with. eg. AzureKeyVault, FrontDoor"
   type        = string

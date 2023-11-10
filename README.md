@@ -32,6 +32,8 @@ No requirements.
 | subscription\_id | Enter Subscription ID | `string` | n/a | yes |
 | add\_access\_policy | Whether to add an access policy for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription | `bool` | true | no |
 | add\_access\_policy_role | Whether to add a role assignment for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription | `bool` | true | no |
+| new\_frontends | Variable holds new frontdoor configuration | `map` | {} | no |
+| front\_door\_sku\_name | Specifies the SKU for this Front Door Profile | `string` | null | no |
 
 ## Outputs
 
