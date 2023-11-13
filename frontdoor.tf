@@ -383,7 +383,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 
 data "azurerm_dns_zone" "public_dns" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "add_txt_record", false)
+    if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
   }
   provider            = azurerm.public_dns
   name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? each.value.custom_domain : replace(each.value.custom_domain, "/^[^.]+\\./", "")
@@ -392,7 +392,7 @@ data "azurerm_dns_zone" "public_dns" {
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "add_txt_record", false)
+    if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
   }
   provider            = azurerm.public_dns
   name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "_dnsauth" : join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
