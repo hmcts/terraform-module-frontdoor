@@ -383,6 +383,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 
 data "azurerm_dns_zone" "public_dns" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
+    if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
   }
   provider            = azurerm.public_dns
   name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? each.value.custom_domain : replace(each.value.custom_domain, "/^[^.]+\\./", "")
