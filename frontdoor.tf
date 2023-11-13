@@ -386,7 +386,7 @@ data "azurerm_dns_zone" "public_dns" {
     if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
   }
   provider            = azurerm.public_dns
-  name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? each.value.custom_domain : replace(each.value.custom_domain, "/^[^.]+\\./", "")
+  name                = each.value.dns_zone_name
   resource_group_name = "reformmgmtrg"
 }
 
