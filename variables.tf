@@ -42,6 +42,7 @@ variable "resource_group" {
 variable "certificate_key_vault_name" {
   description = "Name of the Keyvault that holds certificate"
   type        = string
+  default     = null
 }
 variable "oms_env" {
   description = "Name of the log analytics workspace"
@@ -61,19 +62,6 @@ variable "diagnostics_storage_account_id" {
   description = "ID of a storage account to send access logs to."
   default     = null
 }
-
-variable "add_access_policy" {
-  default     = true
-  type        = bool
-  description = "Whether to add an access policy for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription"
-}
-
-variable "add_access_policy_role" {
-  default     = true
-  type        = bool
-  description = "Whether to add a role assignment for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription"
-}
-
 variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
   type        = string
