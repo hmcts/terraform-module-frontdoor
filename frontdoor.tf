@@ -383,7 +383,6 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 
 data "azurerm_dns_zone" "public_dns" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-    if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
   }
   provider            = azurerm.public_dns
   name                = each.value.dns_zone_name
@@ -391,16 +390,16 @@ data "azurerm_dns_zone" "public_dns" {
 }
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-    if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
+  for_each = { for k in azurerm_cdn_frontdoor_custom_domain.custom_domain[*] : k => k
+    if try(k.validation_token, null) != null
   }
   provider            = azurerm.public_dns
-  name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "_dnsauth" : join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
-  zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
-  resource_group_name = data.azurerm_dns_zone.public_dns[each.key].resource_group_name
+  name                = join(".", ["_dnsauth", element(split(".", each.value.name), 0)])
+  zone_name           = data.azurerm_dns_zone.public_dns[each.value.name].name
+  resource_group_name = data.azurerm_dns_zone.public_dns[each.value.name].resource_group_name
   ttl                 = 3600
 
   record {
-    value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
+    value = each.value.validation_token
   }
 }
