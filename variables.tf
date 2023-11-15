@@ -44,10 +44,7 @@ variable "certificate_key_vault_name" {
   type        = string
   default     = null
 }
-variable "oms_env" {
-  description = "Name of the log analytics workspace"
-  type        = string
-}
+
 variable "certificate_name_check" {
   description = "Enforce backend pools certificate name check"
   type        = bool
@@ -55,6 +52,7 @@ variable "certificate_name_check" {
 variable "key_vault_resource_group" {
   description = "Key Vault resource group name"
   type        = string
+  default     = null
 }
 
 
