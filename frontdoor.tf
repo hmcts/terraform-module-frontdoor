@@ -382,18 +382,14 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 }
 
 data "azurerm_dns_zone" "public_dns" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-    if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
-  }
+  for_each = { for frontend in var.frontends : frontend.name => frontend }
   provider            = azurerm.public_dns
   name                = each.value.dns_zone_name
   resource_group_name = "reformmgmtrg"
 }
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-    if azurerm_cdn_frontdoor_custom_domain.custom_domain[frontend.name].validation_token != ""
-  }
+  for_each = { for frontend in var.frontends : frontend.name => frontend }
   provider            = azurerm.public_dns
   name                = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "_dnsauth" : join(".", ["_dnsauth", element(split(".", each.value.custom_domain), 0)])
   zone_name           = data.azurerm_dns_zone.public_dns[each.key].name
@@ -401,6 +397,6 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
   ttl                 = 3600
 
   record {
-    value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
+    value = try(azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token, "(already validated)")
   }
 }
