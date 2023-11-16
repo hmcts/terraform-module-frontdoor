@@ -39,7 +39,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
 
 resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
   name                          = "defaultBackend"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend[0].id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
 
   enabled                        = true
   host_name                      = "www.bing.com"
@@ -55,8 +55,8 @@ resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
 resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   name                            = "defaultRouting"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend[0].id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin[0].id]
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
   cdn_frontdoor_custom_domain_ids = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group}/providers/Microsoft.Cdn/profiles/${azurerm_cdn_frontdoor_profile.front_door.name}/customDomains/${azurerm_cdn_frontdoor_profile.front_door.name}-azurefd-net", ""]
   enabled                         = true
 
@@ -145,8 +145,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   }
   name                            = "${each.value.name}HttpsRedirect"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend[0].id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin[0].id]
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
   cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.https_redirect.id]
   enabled                         = true
