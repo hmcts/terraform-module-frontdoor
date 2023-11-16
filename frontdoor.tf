@@ -25,7 +25,6 @@ resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
 }
 ######## Defaults ########
 resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
-  count                    = var.add_defaults ? 1 : 0
   name                     = "defaultBackend"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   session_affinity_enabled = false
@@ -36,13 +35,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
     additional_latency_in_milliseconds = 0
   }
 }
-moved {
-  from = azurerm_cdn_frontdoor_origin_group.defaultBackend
-  to   = azurerm_cdn_frontdoor_origin_group.defaultBackend[0]
-}
+
 
 resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
-  count                         = var.add_defaults ? 1 : 0
   name                          = "defaultBackend"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend[0].id
 
@@ -55,18 +50,14 @@ resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
   weight                         = 50
   certificate_name_check_enabled = true
 }
-moved {
-  from = azurerm_cdn_frontdoor_origin.defaultBackend_origin
-  to   = azurerm_cdn_frontdoor_origin.defaultBackend_origin[0]
-}
+
 
 resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
-  count                           = var.add_defaults ? 1 : 0
   name                            = "defaultRouting"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend[0].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin[0].id]
-  cdn_frontdoor_custom_domain_ids = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group}/providers/Microsoft.Cdn/profiles/${azurerm_cdn_frontdoor_profile.front_door.name}/customDomains/${azurerm_cdn_frontdoor_profile.front_door.name}-azurefd-net"]
+  cdn_frontdoor_custom_domain_ids = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group}/providers/Microsoft.Cdn/profiles/${azurerm_cdn_frontdoor_profile.front_door.name}/customDomains/${azurerm_cdn_frontdoor_profile.front_door.name}-azurefd-net", ""]
   enabled                         = true
 
   supported_protocols    = ["Http", "Https"]
@@ -76,10 +67,6 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   https_redirect_enabled = false
 }
 
-moved {
-  from = azurerm_cdn_frontdoor_route.default_routing_rule
-  to   = azurerm_cdn_frontdoor_route.default_routing_rule[0]
-}
 ######## End defaults ########
 
 resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
