@@ -70,3 +70,9 @@ variable "front_door_sku_name" {
   type        = string
   default     = "Premium_AzureFrontDoor"
 }
+
+variable "add_defaults" {
+  type        = bool
+  description = "This variables determines if default resources like backend, origin, routing rule needed, by default its set to true"
+  default     = true
+}

@@ -25,7 +25,7 @@ resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
 }
 ######## Defaults ########
 resource "azurerm_cdn_frontdoor_origin_group" "defaultBackend" {
-  count                    = strcontains(lower(data.azurerm_subscription.current.display_name), lower("heritage")) ? 0 : 1
+  count                    = var.add_defaults ? 1 : 0
   name                     = "defaultBackend"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   session_affinity_enabled = false
@@ -42,7 +42,7 @@ moved {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
-  count                         = strcontains(lower(data.azurerm_subscription.current.display_name), lower("heritage")) ? 0 : 1
+  count                         = var.add_defaults ? 1 : 0
   name                          = "defaultBackend"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.defaultBackend[0].id
 
@@ -61,7 +61,7 @@ moved {
 }
 
 resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
-  count                           = strcontains(lower(data.azurerm_subscription.current.display_name), lower("heritage")) ? 0 : 1
+  count                           = var.add_defaults ? 1 : 0
   name                            = "defaultRouting"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend[0].id
