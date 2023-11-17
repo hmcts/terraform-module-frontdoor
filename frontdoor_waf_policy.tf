@@ -1,6 +1,6 @@
 resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "redirect", null) == null || lookup(frontend, "enable_waf", true) == true
+    if lookup(frontend, "redirect", null) == null
   }
   name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
   resource_group_name               = var.resource_group
@@ -12,44 +12,49 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   custom_block_response_status_code = lookup(each.value, "status_code", 403)
   custom_block_response_body        = lookup(each.value, "response_body", null)
 
+  dynamic "managed_rule" {
+    iterator = managedrule
+    for_each = lookup(each.value, "enable_default", true) ? each.value : []
+    content {
+      type    = "DefaultRuleSet"
+      version = "1.0"
+      action  = "Block"
 
+      dynamic "exclusion" {
+        iterator = exclusion
+        for_each = lookup(each.value, "global_exclusions", [])
 
-  managed_rule {
-    type    = "DefaultRuleSet"
-    version = "1.0"
-    action  = "Block"
-
-    dynamic "exclusion" {
-      iterator = exclusion
-      for_each = lookup(each.value, "global_exclusions", [])
-
-      content {
-        match_variable = exclusion.value.match_variable
-        operator       = exclusion.value.operator
-        selector       = exclusion.value.selector
+        content {
+          match_variable = exclusion.value.match_variable
+          operator       = exclusion.value.operator
+          selector       = exclusion.value.selector
+        }
       }
-    }
 
-    dynamic "override" {
-      iterator = rulesets
-      for_each = lookup(each.value, "disabled_rules", {})
+      dynamic "override" {
+        iterator = rulesets
+        for_each = lookup(each.value, "disabled_rules", {})
 
-      content {
-        rule_group_name = rulesets.key
+        content {
+          rule_group_name = rulesets.key
 
-        dynamic "rule" {
-          iterator = rule_id
-          for_each = rulesets.value
+          dynamic "rule" {
+            iterator = rule_id
+            for_each = rulesets.value
 
-          content {
-            rule_id = rule_id.value
-            enabled = false
-            action  = "Block"
+            content {
+              rule_id = rule_id.value
+              enabled = false
+              action  = "Block"
+            }
           }
         }
       }
     }
   }
+
+
+
   dynamic "custom_rule" {
     iterator = custom_rule
     for_each = lookup(each.value, "custom_rules", [])
