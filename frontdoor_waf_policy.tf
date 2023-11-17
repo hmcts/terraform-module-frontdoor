@@ -1,14 +1,17 @@
 resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "redirect", null) == null
+    if lookup(frontend, "redirect", null) == null || lookup(frontend, "enable_waf", true) == true
   }
-  name                = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
-  resource_group_name = var.resource_group
-  sku_name            = azurerm_cdn_frontdoor_profile.front_door.sku_name
-  enabled             = true
-  mode                = lookup(each.value, "mode", "Prevention")
-  redirect_url        = lookup(each.value, "redirect_url", null)
-  tags                = var.common_tags
+  name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
+  resource_group_name               = var.resource_group
+  sku_name                          = azurerm_cdn_frontdoor_profile.front_door.sku_name
+  enabled                           = true
+  mode                              = lookup(each.value, "mode", "Prevention")
+  redirect_url                      = lookup(each.value, "redirect_url", null)
+  tags                              = var.common_tags
+  custom_block_response_status_code = lookup(each.value, "status_code", 403)
+  custom_block_response_body        = lookup(each.value, "response_body", null)
+
 
 
   managed_rule {
@@ -75,7 +78,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
 
 resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "redirect", null) == null
+    if lookup(frontend, "redirect", null) == null || lookup(frontend, "enable_waf", true) == true
   }
   name                     = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}-securityPolicy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
