@@ -57,7 +57,7 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
-  cdn_frontdoor_custom_domain_ids = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group}/providers/Microsoft.Cdn/profiles/${azurerm_cdn_frontdoor_profile.front_door.name}/customDomains/${azurerm_cdn_frontdoor_profile.front_door.name}-nleazurefd-net"]
+  cdn_frontdoor_custom_domain_ids = ["/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group}/providers/Microsoft.Cdn/profiles/${azurerm_cdn_frontdoor_profile.front_door.name}/customDomains/${azurerm_cdn_frontdoor_profile.front_door.name}-azurefd-net"]
   enabled                         = true
 
   supported_protocols    = ["Http", "Https"]
