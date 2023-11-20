@@ -391,8 +391,7 @@ data "azurerm_dns_zone" "public_dns" {
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
   for_each = {
-    for frontend in var.frontends : frontend => 
-    ({ "custom_domain": frontend.custom_domain, "dnz_zone_name": frontend.dns_zone_name })
+    for frontend in var.frontends : frontend => ({custom_domain: frontend.custom_domain, dnz_zone_name: frontend.dns_zone_name})
   }
   provider = azurerm.public_dns
   name = trimsuffix(
