@@ -72,7 +72,7 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
 resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
   if lookup(frontend, "backend_domain", []) != [] ? true : false }
-  name                     = each.value.name
+  name                     = lookup(each.value, "origin_group_name", each.value.name)
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   session_affinity_enabled = false
 
@@ -96,7 +96,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
   if lookup(frontend, "backend_domain", []) != [] ? true : false }
-  name                          = each.value.name
+  name                          = lookup(each.value, "origin_group_name", each.value.name)
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
 
   enabled                        = true
@@ -115,7 +115,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
     for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) == null
   }
-  name                            = each.value.name
+  name                            = lookup(each.value, "routing_rule_A_name", each.value.name)
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
   cdn_frontdoor_origin_group_id   = lookup(each.value, "backend_domain", []) == [] ? azurerm_cdn_frontdoor_origin_group.origin_group[each.value.backend].id : azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = lookup(each.value, "backend_domain", []) == [] ? [azurerm_cdn_frontdoor_origin.front_door_origin[each.value.backend].id] : [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
