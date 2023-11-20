@@ -14,7 +14,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
 
   dynamic "managed_rule" {
     iterator = managedrule
-    for_each = lookup(each.value, "enable_default", true) ? each.value : []
+    for_each = lookup(each.value, "enable_default", true) ? each.value : {}
     content {
       type    = "DefaultRuleSet"
       version = "1.0"
