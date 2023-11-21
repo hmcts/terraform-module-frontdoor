@@ -47,6 +47,26 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
         }
       }
     }
+    dynamic "override" {
+      iterator = oversets
+      for_each = lookup(each.value, "overrides", {})
+
+      content {
+        rule_group_name = oversets.key
+
+        dynamic "exclusion" {
+          iterator = over_id
+          for_each = oversets.value
+
+          content {
+            match_variable = over_id.value.match_variable
+            operator       = over_id.value.operator
+            selector       = over_id.value.selector
+          }
+        }
+      }
+    }
+
   }
 
   dynamic "custom_rule" {
