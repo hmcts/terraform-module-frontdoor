@@ -12,50 +12,42 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   custom_block_response_status_code = lookup(each.value, "status_code", 403)
   custom_block_response_body        = lookup(each.value, "response_body", null)
 
-  dynamic "managed_rule" {
-    iterator = managedrule
-    for_each = { for frontend in var.frontends : frontend.name => frontend
-      if lookup(each.value, "enable_default", true)
-    }
-    content {
-      type    = "DefaultRuleSet"
-      version = "1.0"
-      action  = "Block"
+  managed_rule {
+    type    = "DefaultRuleSet"
+    version = "1.0"
+    action  = "Block"
 
-      dynamic "exclusion" {
-        iterator = exclusion
-        for_each = lookup(each.value, "global_exclusions", [])
+    dynamic "exclusion" {
+      iterator = exclusion
+      for_each = lookup(each.value, "global_exclusions", [])
 
-        content {
-          match_variable = exclusion.value.match_variable
-          operator       = exclusion.value.operator
-          selector       = exclusion.value.selector
-        }
+      content {
+        match_variable = exclusion.value.match_variable
+        operator       = exclusion.value.operator
+        selector       = exclusion.value.selector
       }
+    }
 
-      dynamic "override" {
-        iterator = rulesets
-        for_each = lookup(each.value, "disabled_rules", {})
+    dynamic "override" {
+      iterator = rulesets
+      for_each = lookup(each.value, "disabled_rules", {})
 
-        content {
-          rule_group_name = rulesets.key
+      content {
+        rule_group_name = rulesets.key
 
-          dynamic "rule" {
-            iterator = rule_id
-            for_each = rulesets.value
+        dynamic "rule" {
+          iterator = rule_id
+          for_each = rulesets.value
 
-            content {
-              rule_id = rule_id.value
-              enabled = false
-              action  = "Block"
-            }
+          content {
+            rule_id = rule_id.value
+            enabled = false
+            action  = "Block"
           }
         }
       }
     }
   }
-
-
 
   dynamic "custom_rule" {
     iterator = custom_rule
@@ -122,6 +114,42 @@ resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
       redirect_type        = "Moved"
       destination_hostname = ""
       redirect_protocol    = "Https"
+    }
+  }
+}
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "default_waf_policy" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "add_default_waf", false)
+  }
+  name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
+  resource_group_name               = var.resource_group
+  sku_name                          = azurerm_cdn_frontdoor_profile.front_door.sku_name
+  enabled                           = true
+  mode                              = lookup(each.value, "mode", "Prevention")
+  redirect_url                      = lookup(each.value, "redirect_url", null)
+  tags                              = var.common_tags
+  custom_block_response_status_code = lookup(each.value, "status_code", 403)
+  custom_block_response_body        = lookup(each.value, "response_body", null)
+}
+
+resource "azurerm_cdn_frontdoor_security_policy" "default_security_policy" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "add_default_waf", false)
+  }
+  name                     = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}-securityPolicy"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.default_waf_policy[each.key].id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+        }
+        patterns_to_match = ["/*"]
+      }
     }
   }
 }
