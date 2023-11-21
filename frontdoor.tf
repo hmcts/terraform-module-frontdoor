@@ -53,6 +53,7 @@ resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
 
 
 resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
+  count                           = var.default_routing_rule ? 1 : 0
   name                            = "defaultRouting"
   cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
@@ -65,6 +66,10 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   forwarding_protocol    = "MatchRequest"
   link_to_default_domain = false
   https_redirect_enabled = false
+}
+moved {
+  from = azurerm_cdn_frontdoor_route.default_routing_rule
+  to   = azurerm_cdn_frontdoor_route.default_routing_rule[0]
 }
 
 ######## End defaults ########

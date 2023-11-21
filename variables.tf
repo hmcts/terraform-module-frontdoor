@@ -71,3 +71,8 @@ variable "front_door_sku_name" {
   default     = "Premium_AzureFrontDoor"
 }
 
+variable "default_routing_rule" {
+  type        = bool
+  description = "Enable or disable this if the default routing rule needed"
+  default     = true
+}
