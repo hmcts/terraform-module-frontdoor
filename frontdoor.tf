@@ -382,8 +382,9 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 }
 
 data "azurerm_dns_zone" "public_dns" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-  if lookup(frontend, "hosted_externally", null) == null
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "hosted_externally", null) == null
   }
   provider            = azurerm.public_dns
   name                = each.value.dns_zone_name
@@ -391,8 +392,9 @@ data "azurerm_dns_zone" "public_dns" {
 }
 
 resource "azurerm_dns_txt_record" "public_dns_record" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-  if lookup(frontend, "hosted_externally", null) == null
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "hosted_externally", null) == null
   }
   provider = azurerm.public_dns
   name = trimsuffix(
