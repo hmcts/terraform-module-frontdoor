@@ -384,7 +384,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_D
 data "azurerm_dns_zone" "public_dns" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "hosted_externally", null) == null
+    if lookup(frontend, "hosted_externally", false) == false
   }
   provider            = azurerm.public_dns
   name                = each.value.dns_zone_name
