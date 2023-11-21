@@ -394,7 +394,7 @@ data "azurerm_dns_zone" "public_dns" {
 resource "azurerm_dns_txt_record" "public_dns_record" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "hosted_externally", null) == null
+    if lookup(frontend, "hosted_externally", false) == false
   }
   provider = azurerm.public_dns
   name = trimsuffix(
