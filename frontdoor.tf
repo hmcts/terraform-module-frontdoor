@@ -220,7 +220,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
   tls {
     certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
     minimum_tls_version     = "TLS12"
-    cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].versionless_id : null
+    cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
   }
 }
 
@@ -333,7 +333,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   tls {
     certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
     minimum_tls_version     = "TLS12"
-    cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].versionless_id : null
+    cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
   }
 }
 
