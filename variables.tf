@@ -76,3 +76,9 @@ variable "default_routing_rule" {
   description = "Enable or disable this if the default routing rule needed"
   default     = true
 }
+
+variable "full_frontdoor_name" {
+  type        = string
+  default     = null
+  description = "This variable allow you to add custom frondoor endpoint/profile name"
+}
