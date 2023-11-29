@@ -9,7 +9,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   mode                              = lookup(each.value, "mode", "Prevention")
   redirect_url                      = lookup(each.value, "redirect_url", null)
   tags                              = var.common_tags
-  custom_block_response_status_code = lookup(each.value, "status_code", 403)
+  custom_block_response_status_code = lookup(each.value, "status_code", 0)
   custom_block_response_body        = lookup(each.value, "response_body", null)
 
   managed_rule {
@@ -149,7 +149,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "default_waf_policy" {
   mode                              = lookup(each.value, "mode", "Prevention")
   redirect_url                      = lookup(each.value, "redirect_url", null)
   tags                              = var.common_tags
-  custom_block_response_status_code = lookup(each.value, "status_code", 403)
+  custom_block_response_status_code = lookup(each.value, "status_code", 0)
   custom_block_response_body        = lookup(each.value, "response_body", null)
 }
 
