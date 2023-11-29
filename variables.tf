@@ -88,8 +88,8 @@ variable "default_routing_rule" {
   default     = true
 }
 
-variable "full_frontdoor_name" {
+variable "name" {
   type        = string
   default     = null
-  description = "This variable allow you to add custom frondoor endpoint/profile name"
+  description = "The default name will be project-env, you can override the product+component part by setting this"
 }

@@ -1,5 +1,5 @@
 resource "azurerm_cdn_frontdoor_profile" "front_door" {
-  name                = var.full_frontdoor_name == null ? "${var.project}-${var.env}" : var.full_frontdoor_name
+  name                = var.name == null ? "${var.project}-${var.env}" : var.name
   resource_group_name = var.resource_group
   sku_name            = var.front_door_sku_name
   tags                = var.common_tags
@@ -19,7 +19,7 @@ resource "azapi_update_resource" "frontdoor_system_identity" {
 
 
 resource "azurerm_cdn_frontdoor_endpoint" "endpoint" {
-  name                     = var.full_frontdoor_name == null ? "${var.project}-${var.env}" : var.full_frontdoor_name
+  name                     = var.name == null ? "${var.project}-${var.env}" : var.name
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   tags                     = var.common_tags
 }
