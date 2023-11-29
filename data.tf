@@ -27,5 +27,3 @@ data "azurerm_key_vault_certificate" "certificate" {
 }
 
 data "azurerm_client_config" "current" {}
-
-data "azurerm_subscription" "current" {}
