@@ -2,15 +2,14 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "redirect", null) == null && lookup(frontend, "add_default_waf", null) == null
   }
-  name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
-  resource_group_name               = var.resource_group
-  sku_name                          = azurerm_cdn_frontdoor_profile.front_door.sku_name
-  enabled                           = true
-  mode                              = lookup(each.value, "mode", "Prevention")
-  redirect_url                      = lookup(each.value, "redirect_url", null)
-  tags                              = var.common_tags
-  custom_block_response_status_code = lookup(each.value, "status_code", 0)
-  custom_block_response_body        = lookup(each.value, "response_body", null)
+  name                       = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
+  resource_group_name        = var.resource_group
+  sku_name                   = azurerm_cdn_frontdoor_profile.front_door.sku_name
+  enabled                    = true
+  mode                       = lookup(each.value, "mode", "Prevention")
+  redirect_url               = lookup(each.value, "redirect_url", null)
+  tags                       = var.common_tags
+  custom_block_response_body = lookup(each.value, "response_body", null)
 
   managed_rule {
     type    = "DefaultRuleSet"
@@ -142,15 +141,14 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "default_waf_policy" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "add_default_waf", false)
   }
-  name                              = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
-  resource_group_name               = var.resource_group
-  sku_name                          = azurerm_cdn_frontdoor_profile.front_door.sku_name
-  enabled                           = true
-  mode                              = lookup(each.value, "mode", "Prevention")
-  redirect_url                      = lookup(each.value, "redirect_url", null)
-  tags                              = var.common_tags
-  custom_block_response_status_code = lookup(each.value, "status_code", 0)
-  custom_block_response_body        = lookup(each.value, "response_body", null)
+  name                       = "${replace(lookup(each.value, "name"), "-", "")}${replace(var.env, "-", "")}${replace(azurerm_cdn_frontdoor_profile.front_door.sku_name, "_AzureFrontDoor", "")}"
+  resource_group_name        = var.resource_group
+  sku_name                   = azurerm_cdn_frontdoor_profile.front_door.sku_name
+  enabled                    = true
+  mode                       = lookup(each.value, "mode", "Prevention")
+  redirect_url               = lookup(each.value, "redirect_url", null)
+  tags                       = var.common_tags
+  custom_block_response_body = lookup(each.value, "response_body", null)
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "default_security_policy" {
