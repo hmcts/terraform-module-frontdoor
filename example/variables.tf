@@ -34,11 +34,7 @@ variable "certificate_key_vault_name" {
   type        = string
   default     = "acmedcdcftappssbox"
 }
-variable "oms_env" {
-  description = "Name of the Monitoring enviornment"
-  type        = string
-  default     = "sandbox"
-}
+
 variable "certificate_name_check" {
   description = "Enforce_backend_pools_certificate_name_check"
   type        = bool
