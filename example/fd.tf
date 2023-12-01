@@ -24,12 +24,8 @@ module "landing_zone" {
   resource_group             = var.resource_group
   subscription_id            = data.azurerm_client_config.this.subscription_id
   certificate_key_vault_name = var.certificate_key_vault_name
-  oms_env                    = var.oms_env
   certificate_name_check     = var.certificate_name_check
   key_vault_resource_group   = var.key_vault_resource_group
   log_analytics_workspace_id = module.log_analytics_workspace.workspace_id
-
-  add_access_policy      = false
-  add_access_policy_role = false
 }
 
