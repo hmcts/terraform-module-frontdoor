@@ -98,6 +98,10 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
   }
 }
 
+output "backend_domain_debug" {
+  value = { for key, value in var.frontends : key => value.backend_domain }
+}
+
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
   if lookup(frontend, "backend_domain", []) != [] ? true : false }
