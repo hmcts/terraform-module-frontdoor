@@ -100,7 +100,7 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-  if lookup(frontend, "backend_domain", []) != [] ? true : false }
+  if length(frontend.backend_domain) > 1 ? true : false }
   name                          = lookup(each.value, "origin_group_name", each.value.name)
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
 
