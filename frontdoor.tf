@@ -116,12 +116,12 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin_2" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
-  if length(frontend.backend_domain) > 1 ? true : false }
+  if length(frontend.backend_domain) ==2 ? true : false }
   name                          = lookup(each.value, "origin_group_name", each.value.name)
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
 
   enabled                        = true
-  host_name                      = length(each.value.backend_domain) > 1 ? each.value.backend_domain[1] : null
+  host_name                      = each.value.backend_domain[1]
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
