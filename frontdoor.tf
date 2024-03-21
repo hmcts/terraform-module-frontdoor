@@ -126,7 +126,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
   https_port                     = 443
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
   priority                       = 2
-  weight                         = 50
+  weight                         = 25
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
 }
 
