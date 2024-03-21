@@ -114,6 +114,22 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
 }
 
+resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
+  for_each = { for frontend in var.frontends : frontend.name => frontend
+  if length(lookup(frontend, "backend_domain", [])) == 2 ? true : false }
+  name                          = lookup(each.value, "origin_group_name", each.value.name)
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+
+  enabled                        = true
+  host_name                      = each.value.backend_domain[1]
+  http_port                      = lookup(each.value, "http_port", 80)
+  https_port                     = 443
+  origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
+  priority                       = 2
+  weight                         = 25
+  certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
+}
+
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   for_each = {
