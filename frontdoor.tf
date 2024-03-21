@@ -114,7 +114,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
 }
 
-resource "azurerm_cdn_frontdoor_origin" "front_door_origin_2" {
+resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
   if length(lookup(frontend, "backend_domain", [])) == 2 ? true : false }
   name                          = lookup(each.value, "origin_group_name", each.value.name)
