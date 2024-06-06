@@ -39,9 +39,21 @@ resource "azurerm_cdn_frontdoor_rule" "cache_static_rule" {
   cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.cache_static_ruleset[each.key].id
   order                     = 3
 
+  conditions {
+    dynamic "url_file_extension_condition" {
+      for_each = each.value.cache_static_files.url_file_extension_conditions
+      iterator = condition
+      content {
+        operator         = condition.value.operator
+        negate_condition = condition.value.negate_condition
+        match_values     = condition.value.match_values
+        transforms       = condition.value.transforms
+      }
+    }
+  }
   actions {
     dynamic "route_configuration_override_action" {
-      for_each = each.value.cache_static_files
+      for_each = each.value.cache_static_files.route_configuration_override_action
       iterator = action
       content {
         cache_duration                = action.value.cache_duration
