@@ -23,7 +23,7 @@ resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
 resource "azurerm_cdn_frontdoor_rule_set" "cache_static_ruleset" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "cache_static_files", false)
+    if lookup(frontend, "cache_static_files", null) != null
   }
   name                     = replace("${each.value.name}cachestaticfiles", "-", "")
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
@@ -32,7 +32,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "cache_static_ruleset" {
 resource "azurerm_cdn_frontdoor_rule" "cache_static_rule" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "cache_static_files", false)
+    if lookup(frontend, "cache_static_files", null) != null
   }
   name = replace("${each.value.name}cachestaticfilesrule", "-", "")
 
