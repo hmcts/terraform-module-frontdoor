@@ -115,29 +115,6 @@ resource "azurerm_cdn_frontdoor_security_policy" "security_policy" {
     }
   }
 }
-
-resource "azurerm_cdn_frontdoor_rule_set" "https_redirect" {
-  name                     = "httpsredirect"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-}
-
-resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
-  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
-
-  name                      = "httpsredirectrule"
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.https_redirect.id
-  order                     = 1
-  behavior_on_match         = "Continue"
-
-  actions {
-    url_redirect_action {
-      redirect_type        = "Moved"
-      destination_hostname = ""
-      redirect_protocol    = "Https"
-    }
-  }
-}
-
 resource "azurerm_cdn_frontdoor_firewall_policy" "default_waf_policy" {
   for_each = { for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "enable_managed_ruleset", false)

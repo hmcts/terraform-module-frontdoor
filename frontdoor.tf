@@ -141,6 +141,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   cdn_frontdoor_origin_group_id   = lookup(each.value, "backend_domain", []) == [] ? azurerm_cdn_frontdoor_origin_group.origin_group[each.value.backend].id : azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = lookup(each.value, "backend_domain", []) == [] ? [azurerm_cdn_frontdoor_origin.front_door_origin[each.value.backend].id] : [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
+  cdn_frontdoor_rule_set_ids      = lookup(frontend, "cache_static_files", false) ? [azurerm_cdn_frontdoor_rule_set.cache_static_ruleset[each.key].id] : []
   enabled                         = true
 
   dynamic "cache" {
@@ -169,7 +170,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.https_redirect.id]
+  cdn_frontdoor_rule_set_ids      = lookup(frontend, "cache_static_files", false) ? [azurerm_cdn_frontdoor_rule_set.https_redirect.id, azurerm_cdn_frontdoor_rule_set.cache_static_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.https_redirect.id]
   enabled                         = true
 
   supported_protocols    = ["Http"]
@@ -224,7 +225,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
-  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id]
+  cdn_frontdoor_rule_set_ids      = lookup(frontend, "cache_static_files", false) ? [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.cache_static_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id]
   enabled                         = true
 
   supported_protocols    = ["Http", "Https"]
@@ -337,7 +338,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group_redirect[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin_redirect[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id]
+  cdn_frontdoor_rule_set_ids      = lookup(frontend, "cache_static_files", false) ? [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.cache_static_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id]
   enabled                         = true
 
   supported_protocols    = ["Http", "Https"]
