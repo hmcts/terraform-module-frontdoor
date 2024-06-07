@@ -46,7 +46,7 @@ resource "azurerm_cdn_frontdoor_rule" "caching_rule" {
           {
             operator         = "Equal"
             negate_condition = false
-            match_values     = ["jpg", "png", "css", "ico"]
+            match_values     = ["jpg", "png", "css", "ico", "js"]
             transforms       = ["Lowercase"]
           }
         ]
@@ -55,7 +55,7 @@ resource "azurerm_cdn_frontdoor_rule" "caching_rule" {
       content {
         operator         = lookup(condition.value, "operator", null) != null ? condition.value.operator : "Equal"
         negate_condition = lookup(condition.value, "negate_condition", null) != null ? condition.value.negate_condition : false
-        match_values     = lookup(condition.value, "match_values", null) != null ? condition.value.match_values : ["jpg", "png", "css", "ico"]
+        match_values     = lookup(condition.value, "match_values", null) != null ? condition.value.match_values : ["jpg", "png", "css", "ico", "js"]
         transforms       = lookup(condition.value, "transforms", null) != null ? condition.value.transforms : ["Lowercase"]
       }
     }
