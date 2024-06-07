@@ -23,7 +23,7 @@ resource "azurerm_cdn_frontdoor_rule" "https_redirect_rules" {
 resource "azurerm_cdn_frontdoor_rule_set" "caching_ruleset" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if local.cache
+    if lookup(each.value, "cache_enabled", "true") == "true"
   }
   name                     = replace("${each.value.name}caching", "-", "")
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
@@ -32,7 +32,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "caching_ruleset" {
 resource "azurerm_cdn_frontdoor_rule" "caching_rule" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if local.cache
+    if lookup(each.value, "cache_enabled", "true") == "true"
   }
   name = replace("${each.value.name}cachingrule", "-", "")
 
