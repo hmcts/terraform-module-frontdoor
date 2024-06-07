@@ -44,10 +44,10 @@ resource "azurerm_cdn_frontdoor_rule" "cache_static_rule" {
       for_each = each.value.cache_static_files.url_file_extension_conditions
       iterator = condition
       content {
-        operator         = condition.value.operator
-        negate_condition = condition.value.negate_condition
-        match_values     = condition.value.match_values
-        transforms       = condition.value.transforms
+        operator         = lookup(condition.value, "operator", null) != null ? condition.value.operator : "Equal"
+        negate_condition = lookup(condition.value, "negate_condition", null) != null ? condition.value.negate_condition : false
+        match_values     = lookup(condition.value, "match_values", null) != null ? condition.value.match_values : ["jpg", "png", "css", "ico"]
+        transforms       = lookup(condition.value, "transforms", null) != null ? condition.value.transforms : ["Lowercase"]
       }
     }
   }
