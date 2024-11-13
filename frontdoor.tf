@@ -67,9 +67,12 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   link_to_default_domain = false
   https_redirect_enabled = false
 
-  cache {
-    compression_enabled           = var.compression_enabled
-    query_string_caching_behavior = var.caching_behavior
+  dynamic "cache" {
+    for_each = var.enable_cache ? [1] : []
+    content {
+      compression_enabled           = var.compression_enabled
+      query_string_caching_behavior = var.caching_behavior
+    }
   }
 }
 

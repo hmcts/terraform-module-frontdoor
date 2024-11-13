@@ -100,3 +100,12 @@ variable "compression_enabled" {
 variable "caching_behavior" {
   default = "UseQueryString"
 }
+
+variable "enable_cache" {
+  type    = bool
+  default = false
+}
+
+variable "compression_enabled" {
+  type = bool
+}
