@@ -103,6 +103,6 @@ variable "enable_cache" {
   default = false
 }
 
-variable "compression_enabled" {
+variable "caching_compression" {
   type = bool
 }
