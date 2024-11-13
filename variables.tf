@@ -94,9 +94,6 @@ variable "name" {
   description = "The default name will be project-env, you can override the product+component part by setting this"
 }
 
-variable "compression_enabled" {
-}
-
 variable "caching_behavior" {
   default = "UseQueryString"
 }
