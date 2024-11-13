@@ -66,7 +66,13 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   forwarding_protocol    = "MatchRequest"
   link_to_default_domain = false
   https_redirect_enabled = false
+
+  cache {
+    compression_enabled           = var.compression_enabled
+    query_string_caching_behavior = var.caching_behavior
+  }
 }
+
 moved {
   from = azurerm_cdn_frontdoor_route.default_routing_rule
   to   = azurerm_cdn_frontdoor_route.default_routing_rule[0]
