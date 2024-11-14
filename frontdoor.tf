@@ -182,7 +182,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   https_redirect_enabled = false
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
-    dynamic "cache" {
+  dynamic "cache" {
     for_each = var.enable_cache ? [1] : []
     content {
       compression_enabled           = var.caching_compression
