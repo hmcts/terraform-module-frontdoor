@@ -46,11 +46,13 @@ variable "key_vault_resource_group" {
   default     = "cft-platform-sbox-rg"
 }
 
-variable "caching_compression" {
-  type = bool
-}
-
-variable "enable_cache" {
-  type    = bool
-  default = false
+variable "app_cache_settings" {
+  description = "Cache settings for each application"
+  type = map(object({
+    query_parameter_strip_directive = string
+    compression_enabled             = bool
+    query_strings                   = string
+    content_types_to_compress       = string
+  }))
+  default = {}
 }
