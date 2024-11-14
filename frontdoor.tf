@@ -67,13 +67,6 @@ resource "azurerm_cdn_frontdoor_route" "default_routing_rule" {
   link_to_default_domain = false
   https_redirect_enabled = false
 
-  dynamic "cache" {
-    for_each = var.enable_cache ? [1] : []
-    content {
-      compression_enabled           = var.caching_compression
-      query_string_caching_behavior = var.caching_behavior
-    }
-  }
 }
 
 moved {
@@ -159,6 +152,14 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   link_to_default_domain = false
   https_redirect_enabled = false
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
+
+  dynamic "cache" {
+    for_each = var.enable_cache ? [1] : []
+    content {
+      compression_enabled           = var.caching_compression
+      query_string_caching_behavior = var.caching_behavior
+    }
+  }
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
@@ -180,6 +181,14 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   link_to_default_domain = false
   https_redirect_enabled = false
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
+
+    dynamic "cache" {
+    for_each = var.enable_cache ? [1] : []
+    content {
+      compression_enabled           = var.caching_compression
+      query_string_caching_behavior = var.caching_behavior
+    }
+  }
 }
 
 
@@ -234,6 +243,15 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   link_to_default_domain = false
   https_redirect_enabled = true
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
+
+  dynamic "cache" {
+    for_each = var.enable_cache ? [1] : []
+    content {
+      compression_enabled           = var.caching_compression
+      query_string_caching_behavior = var.caching_behavior
+    }
+  }
+
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
@@ -347,6 +365,15 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   link_to_default_domain = false
 
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin, azurerm_cdn_frontdoor_origin_group.origin_group_redirect, azurerm_cdn_frontdoor_origin.front_door_origin_redirect]
+
+  dynamic "cache" {
+    for_each = var.enable_cache ? [1] : []
+    content {
+      compression_enabled           = var.caching_compression
+      query_string_caching_behavior = var.caching_behavior
+    }
+  }
+
 }
 
 ################ end of redirect ################ 

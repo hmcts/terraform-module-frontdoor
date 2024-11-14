@@ -106,3 +106,4 @@ variable "enable_cache" {
 variable "caching_compression" {
   type = bool
 }
+
