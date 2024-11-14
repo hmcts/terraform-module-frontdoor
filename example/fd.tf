@@ -27,5 +27,7 @@ module "landing_zone" {
   certificate_name_check     = var.certificate_name_check
   key_vault_resource_group   = var.key_vault_resource_group
   log_analytics_workspace_id = module.log_analytics_workspace.workspace_id
+  caching_compression        = var.caching_compression
+  enable_cache               = var.enable_cache
 }
 

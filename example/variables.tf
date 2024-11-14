@@ -45,3 +45,12 @@ variable "key_vault_resource_group" {
   type        = string
   default     = "cft-platform-sbox-rg"
 }
+
+variable "caching_compression" {
+  type = bool
+}
+
+variable "enable_cache" {
+  type    = bool
+  default = false
+}
