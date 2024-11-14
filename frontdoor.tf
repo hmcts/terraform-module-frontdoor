@@ -154,10 +154,12 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
   dynamic "cache" {
-    for_each = var.enable_cache ? [1] : []
+    for_each = try([var.app_cache_settings[each.key]], [])
     content {
-      compression_enabled           = var.caching_compression
-      query_string_caching_behavior = var.caching_behavior
+      compression_enabled           = cache.value.compression_enabled
+      query_string_caching_behavior = cache.value.query_string_caching_behavior
+      query_strings                 = cache.value.query_string_caching_behavior
+      content_types_to_compress     = cache.value.query_string_caching_behavior
     }
   }
 }
@@ -183,10 +185,12 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
   dynamic "cache" {
-    for_each = var.enable_cache ? [1] : []
+    for_each = try([var.app_cache_settings[each.key]], [])
     content {
-      compression_enabled           = var.caching_compression
-      query_string_caching_behavior = var.caching_behavior
+      compression_enabled           = cache.value.compression_enabled
+      query_string_caching_behavior = cache.value.query_string_caching_behavior
+      query_strings                 = cache.value.query_string_caching_behavior
+      content_types_to_compress     = cache.value.query_string_caching_behavior
     }
   }
 }
@@ -245,13 +249,14 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
 
   dynamic "cache" {
-    for_each = var.enable_cache ? [1] : []
+    for_each = try([var.app_cache_settings[each.key]], [])
     content {
-      compression_enabled           = var.caching_compression
-      query_string_caching_behavior = var.caching_behavior
+      compression_enabled           = cache.value.compression_enabled
+      query_string_caching_behavior = cache.value.query_string_caching_behavior
+      query_strings                 = cache.value.query_string_caching_behavior
+      content_types_to_compress     = cache.value.query_string_caching_behavior
     }
   }
-
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
@@ -367,13 +372,14 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin, azurerm_cdn_frontdoor_origin_group.origin_group_redirect, azurerm_cdn_frontdoor_origin.front_door_origin_redirect]
 
   dynamic "cache" {
-    for_each = var.enable_cache ? [1] : []
+    for_each = try([var.app_cache_settings[each.key]], [])
     content {
-      compression_enabled           = var.caching_compression
-      query_string_caching_behavior = var.caching_behavior
+      compression_enabled           = cache.value.compression_enabled
+      query_string_caching_behavior = cache.value.query_string_caching_behavior
+      query_strings                 = cache.value.query_string_caching_behavior
+      content_types_to_compress     = cache.value.query_string_caching_behavior
     }
   }
-
 }
 
 ################ end of redirect ################ 

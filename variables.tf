@@ -94,16 +94,13 @@ variable "name" {
   description = "The default name will be project-env, you can override the product+component part by setting this"
 }
 
-variable "caching_behavior" {
-  default = "UseQueryString"
+variable "app_cache_settings" {
+  description = "Cache settings for each application"
+  type = map(object({
+    query_parameter_strip_directive = string
+    compression_enabled             = bool
+    query_strings                   = string
+    content_types_to_compress       = string
+  }))
+  default = {}
 }
-
-variable "enable_cache" {
-  type    = bool
-  default = false
-}
-
-variable "caching_compression" {
-  type = bool
-}
-
