@@ -21,17 +21,6 @@ variable "frontends" {
   type        = any
 }
 
-variable "app_cache_settings" {
-  description = "Cache settings for each application"
-  type = map(object({
-    query_parameter_strip_directive = string
-    compression_enabled             = bool
-    query_strings                   = string
-    content_types_to_compress       = string
-  }))
-  default = {}
-}
-
 variable "subscription_id" {
   description = "Enter ID of subscription frontdoor is deployed to"
   type        = string
@@ -103,15 +92,4 @@ variable "name" {
   type        = string
   default     = null
   description = "The default name will be project-env, you can override the product+component part by setting this"
-}
-
-variable "app_cache_settings" {
-  description = "Cache settings for each application"
-  type = map(object({
-    query_parameter_strip_directive = string
-    compression_enabled             = bool
-    query_strings                   = string
-    content_types_to_compress       = string
-  }))
-  default = {}
 }
