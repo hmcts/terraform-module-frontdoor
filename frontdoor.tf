@@ -155,10 +155,10 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   dynamic "cache" {
     for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
     content {
-      compression_enabled           = cache.value.compression_enabled
-      query_string_caching_behavior = cache.value.query_string_caching_behavior
-      query_strings                 = cache.value.query_strings
-      content_types_to_compress     = cache.value.content_types_to_compress
+      compression_enabled           = lookup(cache.value, "compression_enabled", false)
+      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", [])
+      query_strings                 = lookup(cache.value, "query_strings", [])
+      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
     }
   }
 }
@@ -186,10 +186,10 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   dynamic "cache" {
     for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
     content {
-      compression_enabled           = cache.value.compression_enabled
-      query_string_caching_behavior = cache.value.query_string_caching_behavior
-      query_strings                 = cache.value.query_strings
-      content_types_to_compress     = cache.value.content_types_to_compress
+      compression_enabled           = lookup(cache.value, "compression_enabled", false)
+      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", [])
+      query_strings                 = lookup(cache.value, "query_strings", [])
+      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
     }
   }
 }
@@ -250,10 +250,10 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   dynamic "cache" {
     for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
     content {
-      compression_enabled           = cache.value.compression_enabled
-      query_string_caching_behavior = cache.value.query_string_caching_behavior
-      query_strings                 = cache.value.query_strings
-      content_types_to_compress     = cache.value.content_types_to_compress
+      compression_enabled           = lookup(cache.value, "compression_enabled", false)
+      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", "")
+      query_strings                 = lookup(cache.value, "query_strings", [])
+      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
     }
   }
 }
@@ -373,10 +373,10 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   dynamic "cache" {
     for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
     content {
-      compression_enabled           = cache.value.compression_enabled
-      query_string_caching_behavior = cache.value.query_string_caching_behavior
-      query_strings                 = cache.value.query_strings
-      content_types_to_compress     = cache.value.content_types_to_compress
+      compression_enabled           = lookup(cache.value, "compression_enabled", false)
+      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", "")
+      query_strings                 = lookup(cache.value, "query_strings", [])
+      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
     }
   }
 }
