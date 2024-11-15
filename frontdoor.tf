@@ -152,7 +152,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   https_redirect_enabled = false
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
- dynamic "cache" {
+  dynamic "cache" {
     for_each = [each.value.cache_enabled]
     content {
       compression_enabled           = cache.value.compression_enabled
@@ -183,7 +183,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   https_redirect_enabled = false
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
- dynamic "cache" {
+  dynamic "cache" {
     for_each = [each.value.cache_enabled]
     content {
       compression_enabled           = cache.value.compression_enabled
