@@ -152,15 +152,15 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   https_redirect_enabled = false
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
-  dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
-    content {
-      compression_enabled           = lookup(cache.value, "compression_enabled", false)
-      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", [])
-      query_strings                 = lookup(cache.value, "query_strings", [])
-      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
-    }
+dynamic "cache" {
+  for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+  content {
+    compression_enabled           = lookup(each.value.cache_enabled, "compression_enabled", false)
+    query_string_caching_behavior = lookup(each.value.cache_enabled, "query_string_caching_behavior", [])
+    query_strings                 = lookup(each.value.cache_enabled, "query_strings", [])
+    content_types_to_compress     = lookup(each.value.cache_enabled, "content_types_to_compress", [])
   }
+}
 }
 
 resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
@@ -183,15 +183,15 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   https_redirect_enabled = false
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
-  dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
-    content {
-      compression_enabled           = lookup(cache.value, "compression_enabled", false)
-      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", [])
-      query_strings                 = lookup(cache.value, "query_strings", [])
-      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
-    }
+dynamic "cache" {
+  for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+  content {
+    compression_enabled           = lookup(each.value.cache_enabled, "compression_enabled", false)
+    query_string_caching_behavior = lookup(each.value.cache_enabled, "query_string_caching_behavior", [])
+    query_strings                 = lookup(each.value.cache_enabled, "query_strings", [])
+    content_types_to_compress     = lookup(each.value.cache_enabled, "content_types_to_compress", [])
   }
+}
 }
 
 
@@ -247,15 +247,15 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   https_redirect_enabled = true
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
 
-  dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
-    content {
-      compression_enabled           = lookup(cache.value, "compression_enabled", false)
-      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", "")
-      query_strings                 = lookup(cache.value, "query_strings", [])
-      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
-    }
+dynamic "cache" {
+  for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+  content {
+    compression_enabled           = lookup(each.value.cache_enabled, "compression_enabled", false)
+    query_string_caching_behavior = lookup(each.value.cache_enabled, "query_string_caching_behavior", [])
+    query_strings                 = lookup(each.value.cache_enabled, "query_strings", [])
+    content_types_to_compress     = lookup(each.value.cache_enabled, "content_types_to_compress", [])
   }
+}
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
@@ -370,15 +370,15 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
 
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin, azurerm_cdn_frontdoor_origin_group.origin_group_redirect, azurerm_cdn_frontdoor_origin.front_door_origin_redirect]
 
-  dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
-    content {
-      compression_enabled           = lookup(cache.value, "compression_enabled", false)
-      query_string_caching_behavior = lookup(cache.value, "query_string_caching_behavior", "")
-      query_strings                 = lookup(cache.value, "query_strings", [])
-      content_types_to_compress     = lookup(cache.value, "content_types_to_compress", [])
-    }
+dynamic "cache" {
+  for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+  content {
+    compression_enabled           = lookup(each.value.cache_enabled, "compression_enabled", false)
+    query_string_caching_behavior = lookup(each.value.cache_enabled, "query_string_caching_behavior", [])
+    query_strings                 = lookup(each.value.cache_enabled, "query_strings", [])
+    content_types_to_compress     = lookup(each.value.cache_enabled, "content_types_to_compress", [])
   }
+}
 }
 ################ end of redirect ################ 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
