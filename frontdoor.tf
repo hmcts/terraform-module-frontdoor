@@ -153,7 +153,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
   dynamic "cache" {
-    for_each = each.value.cache_enabled ? [1] : []
+  for_each = each.value.cache_enabled.enabled ? [each.value.cache_enabled] : []
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
@@ -184,7 +184,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
   dynamic "cache" {
-    for_each = each.value.cache_enabled ? [1] : []
+  for_each = each.value.cache_enabled.enabled ? [each.value.cache_enabled] : []
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
@@ -248,7 +248,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
 
   dynamic "cache" {
-    for_each = each.value.cache_enabled ? [1] : []
+  for_each = each.value.cache_enabled.enabled ? [each.value.cache_enabled] : []
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
@@ -371,7 +371,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin, azurerm_cdn_frontdoor_origin_group.origin_group_redirect, azurerm_cdn_frontdoor_origin.front_door_origin_redirect]
 
   dynamic "cache" {
-    for_each = each.value.cache_enabled ? [1] : []
+  for_each = each.value.cache_enabled.enabled ? [each.value.cache_enabled] : []
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
