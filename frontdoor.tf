@@ -153,7 +153,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
   dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+    for_each = try(each.value.caching, [])
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
@@ -184,7 +184,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin]
 
   dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+    for_each = try(each.value.caching, [])
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
@@ -195,7 +195,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
 }
 
 
-################ ################  www_redirect ################ 
+################ ################  www_redirect ################
 
 resource "azurerm_cdn_frontdoor_rule_set" "www_redirect_rule_set" {
   for_each = {
@@ -248,7 +248,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
 
   dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+    for_each = try(each.value.caching, [])
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
@@ -280,10 +280,10 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C
   cdn_frontdoor_custom_domain_id = azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id
   cdn_frontdoor_route_ids        = [azurerm_cdn_frontdoor_route.routing_rule_C[each.key].id]
 }
-################ END of  www_redirect ################ 
+################ END of  www_redirect ################
 
 
-################  redirect ################ 
+################  redirect ################
 
 
 resource "azurerm_cdn_frontdoor_origin_group" "origin_group_redirect" {
@@ -371,7 +371,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin, azurerm_cdn_frontdoor_origin_group.origin_group_redirect, azurerm_cdn_frontdoor_origin.front_door_origin_redirect]
 
   dynamic "cache" {
-    for_each = try(each.value.cache_enabled.enabled, false) ? [each.value.cache_enabled] : []
+    for_each = try(each.value.caching, [])
     content {
       compression_enabled           = cache.value.compression_enabled
       query_string_caching_behavior = cache.value.query_string_caching_behavior
@@ -380,7 +380,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
     }
   }
 }
-################ end of redirect ################ 
+################ end of redirect ################
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   for_each                 = { for frontend in var.frontends : frontend.name => frontend }
   name                     = each.value.name

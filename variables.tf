@@ -93,33 +93,3 @@ variable "name" {
   default     = null
   description = "The default name will be project-env, you can override the product+component part by setting this"
 }
-
-variable "cache_enabled" {
-  description = "Enable or disable cache"
-  type        = bool
-  default     = false
-}
-
-variable "compression_enabled" {
-  description = "Enable or disable compression"
-  type        = bool
-  default     = false
-}
-
-variable "query_string_caching_behavior" {
-  description = "Query string caching behavior"
-  type        = list(string)
-  default     = []
-}
-
-variable "query_strings" {
-  description = "Query strings to cache"
-  type        = list(string)
-  default     = []
-}
-
-variable "content_types_to_compress" {
-  description = "Content types to compress"
-  type        = list(string)
-  default     = []
-}
