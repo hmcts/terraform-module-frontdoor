@@ -12,8 +12,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   custom_block_response_body = lookup(each.value, "response_body", null)
 
   managed_rule {
-    type    = "DefaultRuleSet"
-    version = "1.0"
+    type    = lookup(each.value, "ruleset_type", "DefaultRuleSet")
+    version = lookup(each.value, "ruleset_value", "1.0")
     action  = "Block"
 
     dynamic "exclusion" {
