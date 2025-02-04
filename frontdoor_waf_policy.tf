@@ -41,7 +41,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
           content {
             rule_id = rule_id.value
             enabled = false
-            action  = "Block"
+            action  = lookup(each.value, "disabled_rules_action", "Block")
           }
         }
       }
