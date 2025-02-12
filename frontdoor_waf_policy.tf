@@ -87,7 +87,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
           negation_condition = match_condition.value.negation_condition
           match_values       = match_condition.value.match_values
           transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
-          selector           = match_condition.value.match_variable == "PostArgs" || match_condition.value.match_variable == "RequestHeader" ? (can(match_condition.value.selector) ? match_condition.value.selector : null) : null
+          selector           = match_condition.value.match_variable == "PostArgs" || "RequestHeader" ? match_condition.value.selector : null
         }
       }
     }
