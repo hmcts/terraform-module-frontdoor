@@ -96,7 +96,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "hsts_rules" {
     for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "hsts_header_enabled", "true") == "true"
   }
-  name                     = relace("${each.value.name}HstsRule", "-", "")
+  name                     = replace("${each.value.name}HstsRule", "-", "")
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 }
 
