@@ -107,7 +107,7 @@ resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
   }
 
   name                      = replace("${each.value.name}HstsHeader", "-", "")
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.hsts_rules.id
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id
   order                     = 1
 
   actions {
