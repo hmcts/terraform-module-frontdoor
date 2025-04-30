@@ -111,7 +111,7 @@ resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
   order                     = 1
 
   actions {
-    header_action {
+    response_header_action {
       header_action = "Overwrite"
       header_name   = "Strict-Transport-Security"
       value         = "max-age=31536000; includeSubDomains"
