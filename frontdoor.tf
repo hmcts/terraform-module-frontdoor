@@ -141,9 +141,14 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   cdn_frontdoor_origin_group_id   = lookup(each.value, "backend_domain", []) == [] ? azurerm_cdn_frontdoor_origin_group.origin_group[each.value.backend].id : azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = lookup(each.value, "backend_domain", []) == [] ? [azurerm_cdn_frontdoor_origin.front_door_origin[each.value.backend].id] : [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : []
-  enabled                         = true
 
+  # associate rule sets with this route checking two variables 'cache_enabled' and 'hsts_header_enabled'
+  cdn_frontdoor_rule_set_ids = concat(
+    lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [],
+    lookup(each.value, "hsts_header_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id] : []
+  )
+
+  enabled                = true
   supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
   patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
   forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
@@ -426,25 +431,4 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
   record {
     value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token == "" ? "validated" : azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
   }
-}
-
-resource "azurerm_cdn_frontdoor_route" "routing_rule_hsts_header" {
-  for_each = {
-    for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "hsts_header_enabled", "true") == "true"
-  }
-  name                            = "${each.value.name}HstsHeader"
-  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
-  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
-  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
-  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id]
-  enabled                         = true
-
-  supported_protocols    = ["Http", "Https"]
-  patterns_to_match      = ["/*"]
-  forwarding_protocol    = "HttpsOnly"
-  link_to_default_domain = false
-  https_redirect_enabled = true
-  depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
 }
