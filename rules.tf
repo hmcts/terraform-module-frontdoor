@@ -90,3 +90,43 @@ resource "azurerm_cdn_frontdoor_rule" "caching_rule" {
 
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
 }
+
+resource "azurerm_cdn_frontdoor_rule_set" "hsts_rules" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "hsts_header_enabled", "true") == "true"
+  }
+  name                     = relace("${each.value.name}HstsRule", "-", "")
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+}
+
+resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "hsts_header_enabled", "true") == "true"
+  }
+
+  name                      = replace("${each.value.name}HstsHeader", "-", "")
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.hsts_rules.id
+  order                     = 1
+
+  actions {
+    dynamic "header_action" {
+      for_each = lookup(var.frontends[0], "hsts_header", {
+        header_action = [
+          {
+            header_action = "Overwrite"
+            header_name   = "Strict-Transport-Security"
+            value         = "max-age=31536000; includeSubDomains"
+          }
+        ]
+      }).header_action
+      iterator = action
+      content {
+        header_action = lookup(action.value, "header_action", null) != null ? action.value.header_action : "Overwrite"
+        header_name   = lookup(action.value, "header_name", null) != null ? action.value.header_name : "Strict-Transport-Security"
+        value         = lookup(action.value, "value", null) != null ? action.value.value : "max-age=31536000; includeSubDomains"
+      }
+    }
+  }
+}

@@ -427,3 +427,24 @@ resource "azurerm_dns_txt_record" "public_dns_record" {
     value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token == "" ? "validated" : azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
   }
 }
+
+resource "azurerm_cdn_frontdoor_route" "routing_rule_hsts_header" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "hsts_header_enabled", "true") == "true"
+  }
+  name                            = "${each.value.name}HstsHeader"
+  cdn_frontdoor_endpoint_id       = azurerm_cdn_frontdoor_endpoint.endpoint.id
+  cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
+  cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
+  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
+  cdn_frontdoor_rule_set_ids      = [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id]
+  enabled                         = true
+
+  supported_protocols    = ["Http", "Https"]
+  patterns_to_match      = ["/*"]
+  forwarding_protocol    = "HttpsOnly"
+  link_to_default_domain = false
+  https_redirect_enabled = true
+  depends_on             = [azurerm_cdn_frontdoor_origin_group.origin_group, azurerm_cdn_frontdoor_origin.front_door_origin, azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
+}
