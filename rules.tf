@@ -111,22 +111,10 @@ resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
   order                     = 1
 
   actions {
-    dynamic "header_action" {
-      for_each = lookup(var.frontends[0], "hsts_header", {
-        header_action = [
-          {
-            header_action = "Overwrite"
-            header_name   = "Strict-Transport-Security"
-            value         = "max-age=31536000; includeSubDomains"
-          }
-        ]
-      }).header_action
-      iterator = action
-      content {
-        header_action = lookup(action.value, "header_action", null) != null ? action.value.header_action : "Overwrite"
-        header_name   = lookup(action.value, "header_name", null) != null ? action.value.header_name : "Strict-Transport-Security"
-        value         = lookup(action.value, "value", null) != null ? action.value.value : "max-age=31536000; includeSubDomains"
-      }
+    header_action {
+      header_action = "Overwrite"
+      header_name   = "Strict-Transport-Security"
+      value         = "max-age=31536000; includeSubDomains"
     }
   }
 }
