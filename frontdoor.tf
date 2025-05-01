@@ -145,7 +145,7 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   # associate rule sets with this route checking two variables 'cache_enabled' and 'hsts_header_enabled'
   cdn_frontdoor_rule_set_ids = concat(
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [],
-    lookup(each.value, "hsts_header_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id] : []
+    lookup(each.value, "hsts_header_enabled", "false") == "true" ? [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id] : []
   )
 
   enabled                = true
