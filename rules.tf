@@ -94,7 +94,7 @@ resource "azurerm_cdn_frontdoor_rule" "caching_rule" {
 resource "azurerm_cdn_frontdoor_rule_set" "hsts_rules" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "hsts_header_enabled", "true") == "true"
+    if lookup(frontend, "hsts_header_enabled", "false") == "true"
   }
   name                     = replace("${each.value.name}HstsRule", "-", "")
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
@@ -103,7 +103,7 @@ resource "azurerm_cdn_frontdoor_rule_set" "hsts_rules" {
 resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "hsts_header_enabled", "true") == "true"
+    if lookup(frontend, "hsts_header_enabled", "false") == "true"
   }
 
   name                      = replace("${each.value.name}HstsHeader", "-", "")
