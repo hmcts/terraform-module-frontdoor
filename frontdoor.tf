@@ -141,9 +141,14 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   cdn_frontdoor_origin_group_id   = lookup(each.value, "backend_domain", []) == [] ? azurerm_cdn_frontdoor_origin_group.origin_group[each.value.backend].id : azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = lookup(each.value, "backend_domain", []) == [] ? [azurerm_cdn_frontdoor_origin.front_door_origin[each.value.backend].id] : [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : []
-  enabled                         = true
 
+  # associate rule sets with this route checking two variables 'cache_enabled' and 'hsts_header_enabled'
+  cdn_frontdoor_rule_set_ids = concat(
+    lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [],
+    lookup(each.value, "hsts_header_enabled", "false") == "true" ? [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id] : []
+  )
+
+  enabled                = true
   supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
   patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
   forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
