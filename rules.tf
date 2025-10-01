@@ -118,3 +118,162 @@ resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
     }
   }
 }
+
+# Custom rule sets supplied via var.rule_sets
+resource "azurerm_cdn_frontdoor_rule_set" "custom" {
+  for_each = var.rule_sets
+  name                     = replace(lookup(each.value, "name", each.key), "-", "")
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+}
+
+locals {
+  custom_rules_flat = flatten([
+    for rs_key, rs in var.rule_sets : [
+      for r in lookup(rs, "rules", []) : {
+        id_key  = "${rs_key}-${replace(r.name, " ", "")}"
+        rs_key  = rs_key
+        rule    = r
+      }
+    ]
+  ])
+
+  # Convenience map to resolve origin group IDs by key for override actions
+  origin_group_ids = merge(
+    {
+      defaultBackend = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
+    },
+    { for k, v in azurerm_cdn_frontdoor_origin_group.origin_group : k => v.id }
+  )
+}
+
+resource "azurerm_cdn_frontdoor_rule" "custom" {
+  for_each = { for item in local.custom_rules_flat : item.id_key => item }
+
+  name                      = replace(each.value.rule.name, "-", "")
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.custom[each.value.rs_key].id
+  order                     = lookup(each.value.rule, "order", 1)
+  behavior_on_match         = lookup(each.value.rule, "behavior_on_match", null)
+
+  dynamic "conditions" {
+    for_each = [lookup(each.value.rule, "conditions", {})]
+    content {
+      dynamic "url_path_condition" {
+        for_each = lookup(conditions.value, "url_path_conditions", [])
+        iterator = c
+        content {
+          operator         = lookup(c.value, "operator", "Equal")
+          negate_condition = lookup(c.value, "negate_condition", false)
+          match_values     = lookup(c.value, "match_values", null)
+          transforms       = lookup(c.value, "transforms", null)
+        }
+      }
+      dynamic "url_file_extension_condition" {
+        for_each = lookup(conditions.value, "url_file_extension_conditions", [])
+        iterator = c
+        content {
+          operator         = lookup(c.value, "operator", "Equal")
+          negate_condition = lookup(c.value, "negate_condition", false)
+          match_values     = lookup(c.value, "match_values", null)
+          transforms       = lookup(c.value, "transforms", null)
+        }
+      }
+      dynamic "request_header_condition" {
+        for_each = lookup(conditions.value, "request_header_conditions", [])
+        iterator = c
+        content {
+          selector         = lookup(c.value, "selector", null)
+          operator         = lookup(c.value, "operator", "Equal")
+          negate_condition = lookup(c.value, "negate_condition", false)
+          match_values     = lookup(c.value, "match_values", null)
+          transforms       = lookup(c.value, "transforms", null)
+        }
+      }
+      dynamic "request_method_condition" {
+        for_each = lookup(conditions.value, "request_method_conditions", [])
+        iterator = c
+        content {
+          operator         = lookup(c.value, "operator", "Equal")
+          negate_condition = lookup(c.value, "negate_condition", false)
+          match_values     = lookup(c.value, "match_values", null)
+          transforms       = lookup(c.value, "transforms", null)
+        }
+      }
+      dynamic "query_string_condition" {
+        for_each = lookup(conditions.value, "query_string_conditions", [])
+        iterator = c
+        content {
+          operator         = lookup(c.value, "operator", "Equal")
+          negate_condition = lookup(c.value, "negate_condition", false)
+          match_values     = lookup(c.value, "match_values", null)
+          transforms       = lookup(c.value, "transforms", null)
+        }
+      }
+      dynamic "request_cookies_condition" {
+        for_each = lookup(conditions.value, "request_cookies_conditions", [])
+        iterator = c
+        content {
+          selector         = lookup(c.value, "selector", null)
+          operator         = lookup(c.value, "operator", "Equal")
+          negate_condition = lookup(c.value, "negate_condition", false)
+          match_values     = lookup(c.value, "match_values", null)
+          transforms       = lookup(c.value, "transforms", null)
+        }
+      }
+    }
+  }
+
+  dynamic "actions" {
+    for_each = [lookup(each.value.rule, "actions", {})]
+    content {
+      dynamic "response_header_action" {
+        for_each = lookup(actions.value, "response_header_actions", [])
+        iterator = a
+        content {
+          header_action = lookup(a.value, "header_action", "Overwrite")
+          header_name   = a.value.header_name
+          value         = a.value.value
+        }
+      }
+      dynamic "url_redirect_action" {
+        for_each = lookup(actions.value, "url_redirect_actions", [])
+        iterator = a
+        content {
+          redirect_type        = lookup(a.value, "redirect_type", "Moved")
+          destination_hostname = lookup(a.value, "destination_hostname", null)
+          redirect_protocol    = lookup(a.value, "redirect_protocol", null)
+          destination_path     = lookup(a.value, "destination_path", null)
+          query_string         = lookup(a.value, "query_string", null)
+          destination_fragment = lookup(a.value, "destination_fragment", null)
+        }
+      }
+      dynamic "route_configuration_override_action" {
+        for_each = lookup(actions.value, "route_configuration_override_actions", [])
+        iterator = a
+        content {
+          cache_duration = lookup(a.value, "cache_duration", null)
+          # Prefer explicit ID if provided; otherwise allow using a convenience key to refer to a module-managed origin group
+          cdn_frontdoor_origin_group_id = coalesce(
+            lookup(a.value, "cdn_frontdoor_origin_group_id", null),
+            lookup(local.origin_group_ids, lookup(a.value, "cdn_frontdoor_origin_group_key", ""), null)
+          )
+          forwarding_protocol           = lookup(a.value, "forwarding_protocol", null)
+          query_string_caching_behavior = lookup(a.value, "query_string_caching_behavior", null)
+          query_string_parameters       = lookup(a.value, "query_string_parameters", null)
+          compression_enabled           = lookup(a.value, "compression_enabled", null)
+          cache_behavior                = lookup(a.value, "cache_behavior", null)
+        }
+      }
+      dynamic "url_rewrite_action" {
+        for_each = lookup(actions.value, "url_rewrite_actions", [])
+        iterator = a
+        content {
+          source_pattern          = lookup(a.value, "source_pattern", null)
+          destination             = lookup(a.value, "destination", null)
+          preserve_unmatched_path = lookup(a.value, "preserve_unmatched_path", null)
+        }
+      }
+    }
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
+}

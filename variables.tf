@@ -105,3 +105,9 @@ variable "cipher_suite_policy" {
   description = "The cipher suite policy to apply to Front Door custom domain."
   default     = null
 }
+
+variable "rule_sets" {
+  description = "Custom Front Door rule sets to create. Map keyed by an identifier; each value supports: name (string), frontends (list(string)) to associate with frontend routes, and rules (list of rule objects). Each rule supports name, order, optional behavior_on_match, conditions (object with lists per condition type), and actions (object with lists per action type)."
+  type        = any
+  default     = {}
+}
