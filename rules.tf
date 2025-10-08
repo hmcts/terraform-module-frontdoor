@@ -121,7 +121,7 @@ resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
 
 # Custom rule sets supplied via var.rule_sets
 resource "azurerm_cdn_frontdoor_rule_set" "custom" {
-  for_each = var.rule_sets
+  for_each                 = var.rule_sets
   name                     = replace(lookup(each.value, "name", each.key), "-", "")
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
 }
@@ -130,9 +130,9 @@ locals {
   custom_rules_flat = flatten([
     for rs_key, rs in var.rule_sets : [
       for r in lookup(rs, "rules", []) : {
-        id_key  = "${rs_key}-${replace(r.name, " ", "")}"
-        rs_key  = rs_key
-        rule    = r
+        id_key = "${rs_key}-${replace(r.name, " ", "")}"
+        rs_key = rs_key
+        rule   = r
       }
     ]
   ])

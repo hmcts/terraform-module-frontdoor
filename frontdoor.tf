@@ -168,11 +168,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = concat(
+  cdn_frontdoor_rule_set_ids = concat(
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.https_redirect.id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.https_redirect.id],
     [for rs_key, rs in var.rule_sets : azurerm_cdn_frontdoor_rule_set.custom[rs_key].id if contains(lookup(rs, "frontends", []), each.key)]
   )
-  enabled                         = true
+  enabled = true
 
   supported_protocols    = ["Http"]
   patterns_to_match      = ["/*"]
@@ -226,11 +226,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
-  cdn_frontdoor_rule_set_ids      = concat(
+  cdn_frontdoor_rule_set_ids = concat(
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id],
     [for rs_key, rs in var.rule_sets : azurerm_cdn_frontdoor_rule_set.custom[rs_key].id if contains(lookup(rs, "frontends", []), each.key)]
   )
-  enabled                         = true
+  enabled = true
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
@@ -372,11 +372,11 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group_redirect[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin_redirect[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = concat(
+  cdn_frontdoor_rule_set_ids = concat(
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id],
     [for rs_key, rs in var.rule_sets : azurerm_cdn_frontdoor_rule_set.custom[rs_key].id if contains(lookup(rs, "frontends", []), each.key)]
   )
-  enabled                         = true
+  enabled = true
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
