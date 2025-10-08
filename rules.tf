@@ -181,7 +181,7 @@ resource "azurerm_cdn_frontdoor_rule" "custom" {
         for_each = lookup(conditions.value, "request_header_conditions", [])
         iterator = c
         content {
-          selector         = lookup(c.value, "selector", null)
+          header_name      = lookup(c.value, "header_name", lookup(c.value, "selector", null))
           operator         = lookup(c.value, "operator", "Equal")
           negate_condition = lookup(c.value, "negate_condition", false)
           match_values     = lookup(c.value, "match_values", null)
@@ -195,24 +195,12 @@ resource "azurerm_cdn_frontdoor_rule" "custom" {
           operator         = lookup(c.value, "operator", "Equal")
           negate_condition = lookup(c.value, "negate_condition", false)
           match_values     = lookup(c.value, "match_values", null)
-          transforms       = lookup(c.value, "transforms", null)
         }
       }
       dynamic "query_string_condition" {
         for_each = lookup(conditions.value, "query_string_conditions", [])
         iterator = c
         content {
-          operator         = lookup(c.value, "operator", "Equal")
-          negate_condition = lookup(c.value, "negate_condition", false)
-          match_values     = lookup(c.value, "match_values", null)
-          transforms       = lookup(c.value, "transforms", null)
-        }
-      }
-      dynamic "request_cookies_condition" {
-        for_each = lookup(conditions.value, "request_cookies_conditions", [])
-        iterator = c
-        content {
-          selector         = lookup(c.value, "selector", null)
           operator         = lookup(c.value, "operator", "Equal")
           negate_condition = lookup(c.value, "negate_condition", false)
           match_values     = lookup(c.value, "match_values", null)
