@@ -13,7 +13,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
 
   dynamic "managed_rule" {
     # If managed_rulesets is defined, use it. Otherwise, create a single ruleset from legacy fields
-    for_each = lookup(each.value, "managed_rulesets", null) != null ? lookup(each.value, "managed_rulesets", []) : [
+    for_each = try(each.value.managed_rulesets, [
       {
         type                  = lookup(each.value, "ruleset_type", "DefaultRuleSet")
         version               = lookup(each.value, "ruleset_value", "1.0")
@@ -22,7 +22,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
         disabled_rules        = lookup(each.value, "disabled_rules", {})
         exclusions            = lookup(each.value, "global_exclusions", [])
       }
-    ]
+    ])
 
     content {
       type    = managed_rule.value.type
