@@ -91,8 +91,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
       priority                       = custom_rule.value.priority
       type                           = custom_rule.value.type
       action                         = custom_rule.value.action
-      rate_limit_duration_in_minutes = lookup(custom_rule.value, "rate_limit_duration_in_minutes", 1)
-      rate_limit_threshold           = lookup(custom_rule.value, "rate_limit_threshold", 100)
+      rate_limit_duration_in_minutes = lookup(custom_rule.value, "rate_limit_duration_in_minutes", null)
+      rate_limit_threshold           = lookup(custom_rule.value, "rate_limit_threshold", null)
 
       dynamic "match_condition" {
         iterator = match_condition
