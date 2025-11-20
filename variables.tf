@@ -94,8 +94,8 @@ variable "name" {
   description = "The default name will be project-env, you can override the product+component part by setting this"
 }
 
-variable "default_tls_policy" {
-    type        = string
-    description = "The TLS policy to apply to Front Door."
-    default     = "TLS12"
+variable "minimum_tls_version" {
+  type        = string
+  description = "The TLS policy to apply to Front Door."
+  default     = "TLS12"
 }
