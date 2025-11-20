@@ -241,8 +241,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
 
   tls {
     certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
-    tls_policy              = var.custom_tls_ciphers ? "Custom" : var.tls_policy
-    custom_tls_ciphers      = var.custom_tls_ciphers ? var.custom_tls_ciphers : null
+    minimum_tls_version     = lookup(each.value, "minimum_tls_version", var.minimum_tls_version)
     cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
   }
 }
