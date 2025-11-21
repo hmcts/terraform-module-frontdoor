@@ -93,3 +93,15 @@ variable "name" {
   default     = null
   description = "The default name will be project-env, you can override the product+component part by setting this"
 }
+
+variable "minimum_tls_version" {
+  type        = string
+  description = "The default TLS policy to apply to Front Door custom domain."
+  default     = "TLS12"
+}
+
+variable "cipher_suite_policy" {
+  type        = string
+  description = "The cipher suite policy to apply to Front Door custom domain."
+  default     = "TLS12_2022"
+}
