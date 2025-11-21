@@ -268,7 +268,7 @@ resource "azapi_update_resource" "tls_cipher_suite_policy_www" {
     properties = {
       tlsSettings = {
         minimumTlsVersion = var.minimum_tls_version
-        cipherSuitePolicy = lookup(frontend, "cipher_suite_policy", var.cipher_suite_policy)
+        cipherSuitePolicy = lookup(each.value.frontend, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
   })
@@ -390,10 +390,9 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   # Prevent Terraform from fighting with the TLS policy patched by AzAPI
   lifecycle {
     ignore_changes = [
-      tls[0].minimum_tls_version,
+      tls
       # AzureRM provider does NOT understand cipherSuitePolicy,
       # so we must ignore TLS updates to avoid drift.
-      properties,
     ]
   }
 }
@@ -409,7 +408,7 @@ resource "azapi_update_resource" "tls_cipher_suite_policy" {
     properties = {
       tlsSettings = {
         minimumTlsVersion = var.minimum_tls_version
-        cipherSuitePolicy = lookup(frontend, "cipher_suite_policy", var.cipher_suite_policy)
+        cipherSuitePolicy = lookup(each.value.frontend, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
   })
