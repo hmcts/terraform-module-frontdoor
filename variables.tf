@@ -96,6 +96,12 @@ variable "name" {
 
 variable "minimum_tls_version" {
   type        = string
-  description = "The TLS policy to apply to Front Door."
+  description = "The default TLS policy to apply to Front Door custom domain."
   default     = "TLS12"
+}
+
+variable "cipher_suite_policy" {
+  type        = string
+  description = "The cipher suite policy to apply to Front Door custom domain."
+  default     = "TLS12_2022"
 }
