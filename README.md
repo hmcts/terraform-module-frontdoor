@@ -44,7 +44,7 @@ Notes
 - If you need to override the origin group for a rule, set `cdn_frontdoor_origin_group_id` to the ID of the desired origin group. If you keep it `null`, the route's default origin group is used.
 
 Example usage
-
+```
 module "frontdoor" {
   source = "../" # or the module source
   # ... existing required inputs ...
@@ -119,7 +119,7 @@ module "frontdoor" {
     ]
   }
 }
-
+```
 ## Outputs
 
 No output.
