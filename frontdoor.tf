@@ -250,10 +250,9 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
   # Prevent Terraform from fighting with the TLS policy patched by AzAPI
   lifecycle {
     ignore_changes = [
-      tls[0].minimum_tls_version,
+      tls
       # AzureRM provider does NOT understand cipherSuitePolicy,
       # so we must ignore TLS updates to avoid drift.
-      properties,
     ]
   }
 }
