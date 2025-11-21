@@ -207,6 +207,17 @@ resource "azurerm_cdn_frontdoor_rule" "custom" {
           transforms       = lookup(c.value, "transforms", null)
         }
       }
+      dynamic "cookies_condition" {
+        for_each = lookup(conditions.value, "cookies_conditions", [])
+        iterator = c
+        content {
+          cookie_name      = lookup(c.value, "cookie_name", lookup(c.value, "selector", null))
+          operator         = lookup(c.value, "operator", "Equal")
+          negate_condition = lookup(c.value, "negate_condition", false)
+          match_values     = lookup(c.value, "match_values", null)
+          transforms       = lookup(c.value, "transforms", null)
+        }
+      }
     }
   }
 
