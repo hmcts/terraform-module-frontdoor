@@ -36,7 +36,7 @@ No requirements.
 
 ## Example: Custom rule set configuration
 
-Below is an example that reproduces the UI configuration shown in the screenshot using the new `rule_sets` input. It creates a rule set named `idamwebpubliccaching` with three rules and associates it with specific frontends.
+Below are examples for custom rules that dynamically change the backend origin group and caching behavior based on query string parameters or cookies.
 
 Notes
 - Use the `frontends` list inside each rule set to attach it to frontend routes created by this module (keys must match your `frontends[*].name`).
@@ -50,108 +50,70 @@ module "frontdoor" {
   # ... existing required inputs ...
 
   rule_sets = {
-    idamwebpubliccaching = {
-      name      = "idamwebpubliccaching"
-      frontends = ["your-frontend-key"]
+    hmcts-access-overrides = {
+    name = "hmcts-access-overrides"
+    frontends = ["idam-web-public"]
 
-      rules = [
-        // 1) IF Query string contains client_id=test-public-service (lowercase) THEN route override: HTTP only, caching disabled
-        {
-          name              = "testhmctaccessmigration"
-          order             = 1
-          behavior_on_match = "Continue"
-          conditions = {
-            query_string_conditions = [{
-              operator     = "Contains"
-              match_values = ["client_id=test-public-service"]
-              transforms   = ["Lowercase"]
-            }]
-          }
-          actions = {
-            route_configuration_override_actions = [{
-              cdn_frontdoor_origin_group_id = null         # keep route's default origin group
-              forwarding_protocol           = "HttpOnly"  # HTTP only
-              cache_behavior                = "BypassCache" # caching disabled
-            }]
-          }
-        },
-
-        // 2) IF Request cookies cookie_name=idam.request operator Any THEN route override: HTTP only, caching disabled; Stop evaluating remaining rules
-        {
-          name              = "testhmctaccessmigration2"
-          order             = 2
-          behavior_on_match = "Stop"  # Stop evaluating remaining rules (like the checkbox in UI)
-          conditions = {
-            request_cookies_conditions = [{
-              selector = "idam.request"  # cookie name
-              operator = "Any"
-            }]
-          }
-          actions = {
-            route_configuration_override_actions = [{
-              cdn_frontdoor_origin_group_id = null
-              forwarding_protocol           = "HttpOnly"
-              cache_behavior                = "BypassCache"
-            }]
-          }
-        },
-
-        // 3) IF Request file extension equals jpg png css ico js (lowercase) THEN caching enabled, use query string, honor origin
-        {
-          name  = "idamwebpubliccachingrule"
-          order = 3
-          conditions = {
-            url_file_extension_conditions = [{
-              operator     = "Equal"
-              match_values = ["jpg", "png", "css", "ico", "js"]
-              transforms   = ["Lowercase"]
-            }]
-          }
-          actions = {
-            route_configuration_override_actions = [{
-              cache_behavior                = "HonorOrigin"
-              query_string_caching_behavior = "UseQueryString"
-              compression_enabled           = false
-            }]
-          }
-        }
-      ]
-    }
-  }
-}
-
-## Example: Overwrite origin group on cookie match
-
-The following example shows how to send traffic to a different origin group when a cookie is present. You can now use a convenience field `cdn_frontdoor_origin_group_key` to reference an origin group created by this module by its frontend key, or the literal key `"defaultBackend"` to point to the module’s default origin group. You can still use `cdn_frontdoor_origin_group_id` if you want to pass an explicit resource ID.
-
-Notes
-- The value of `cdn_frontdoor_origin_group_key` must match one of your `frontends[*].name` entries (for module-managed origin groups), or `defaultBackend`.
-- If both `cdn_frontdoor_origin_group_id` and `cdn_frontdoor_origin_group_key` are provided, the explicit ID wins.
-
-Example usage snippet (inside your module call):
-
-rule_sets = {
-  cookie_ab_switch = {
-    name      = "cookie_ab_switch"
-    frontends = ["my-frontend"]
     rules = [
+      # ──────────────────────────────────────────────
+      # Rule 1: Query string contains client_id=...
+      # ──────────────────────────────────────────────
       {
-        name              = "switch-to-beta-on-cookie"
+        name              = "Test"
         order             = 1
-        behavior_on_match = "Stop"
+        
         conditions = {
-          request_cookies_conditions = [{
-            selector = "ab"
-            operator = "Equal"
-            match_values = ["beta"]
-          }]
+          query_string_conditions = [
+            {
+              operator         = "Contains"
+              negate_condition = false
+              match_values = [
+                "client_id=test-public-service"
+              ]
+              transforms = ["Lowercase"]  
+            }
+          ]
         }
+
         actions = {
-          route_configuration_override_actions = [{
-            cdn_frontdoor_origin_group_key = "my-frontend-beta" # send to the origin group keyed by this frontend name
-            forwarding_protocol           = "HttpOnly"
-            cache_behavior                = "BypassCache"
-          }]
+          route_configuration_override_actions = [
+            {
+              # This key must exist in local.origin_group_ids
+              cdn_frontdoor_origin_group_key = "hmcts-access"
+              forwarding_protocol            = "HttpOnly"   
+              cache_behavior                 = "BypassCache" # “Caching: Disabled”
+            }
+          ]
+        }
+      },
+
+      # ──────────────────────────────────────────────
+      # Rule 2: Cookie idam.request exists (Any)
+      # ──────────────────────────────────────────────
+      {
+        name  = "UseHmctsAccedsIfCookieExists"
+        order = 2
+        # behavior_on_match = "Stop"  # if you want to stop after this rule
+
+        conditions = {
+          cookies_conditions = [
+            {
+              cookie_name      = "idam.request"
+              operator         = "Any"
+              negate_condition = false
+              # no match_values required for "Any"
+            }
+          ]
+        }
+
+        actions = {
+          route_configuration_override_actions = [
+            {
+              cdn_frontdoor_origin_group_key = "hmcts-access"
+              forwarding_protocol            = "HttpOnly"
+              cache_behavior                 = "BypassCache"
+            }
+          ]
         }
       }
     ]
