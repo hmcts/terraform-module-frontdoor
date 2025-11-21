@@ -261,7 +261,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
 resource "azapi_update_resource" "tls_cipher_suite_policy_www" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "cipher_suite_policy", null) && lookup(frontend, "www_redirect", false)
+    if lookup(frontend, "cipher_suite_policy") && lookup(frontend, "www_redirect", false)
   }
   type        = "Microsoft.Cdn/profiles/customDomains@2021-06-01"
   resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id
@@ -269,7 +269,7 @@ resource "azapi_update_resource" "tls_cipher_suite_policy_www" {
     properties = {
       tlsSettings = {
         minimumTlsVersion = var.minimum_tls_version
-        cipherSuitePolicy = lookup(each.value.frontend, "cipher_suite_policy", var.cipher_suite_policy)
+        cipherSuitePolicy = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
   })
@@ -402,7 +402,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 resource "azapi_update_resource" "tls_cipher_suite_policy" {
   for_each = {
     for frontend in var.frontends : frontend.name => frontend
-    if lookup(frontend, "cipher_suite_policy", null)
+    if lookup(frontend, "cipher_suite_policy")
   }
   type        = "Microsoft.Cdn/profiles/customDomains@2021-06-01"
   resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
@@ -410,7 +410,7 @@ resource "azapi_update_resource" "tls_cipher_suite_policy" {
     properties = {
       tlsSettings = {
         minimumTlsVersion = var.minimum_tls_version
-        cipherSuitePolicy = lookup(each.value.frontend, "cipher_suite_policy", var.cipher_suite_policy)
+        cipherSuitePolicy = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
   })
