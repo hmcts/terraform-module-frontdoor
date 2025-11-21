@@ -251,8 +251,9 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
   lifecycle {
     ignore_changes = [
       tls
-      # AzureRM provider does NOT understand cipherSuitePolicy,
-      # so we must ignore TLS updates to avoid drift.
+      # AzureRM provider does NOT understand or expose cipherSuitePolicy, but does expose tls,
+      # we can safely ignore the entire TLS block, which prevents Terraform from trying to “correct”
+      # the settings AzAPI patches.
     ]
   }
 }
@@ -391,8 +392,9 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   lifecycle {
     ignore_changes = [
       tls
-      # AzureRM provider does NOT understand cipherSuitePolicy,
-      # so we must ignore TLS updates to avoid drift.
+      # AzureRM provider does NOT understand or expose cipherSuitePolicy, but does expose tls,
+      # we can safely ignore the entire TLS block, which prevents Terraform from trying to “correct”
+      # the settings AzAPI patches.
     ]
   }
 }
