@@ -120,17 +120,17 @@ resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
 }
 
 locals {
-  # Flatten rule sets per frontend into a list of items with stable keys
+  # Build custom rule sets from per-frontend definitions under var.frontends[*].rule_sets
+  # Supports each frontend.rule_sets being a list or a map; gracefully handles missing/null.
   custom_rulesets = flatten([
-    for fe_key, rs_collection in var.rule_sets : (
-      # Support both list and map inputs for per-frontend rule sets
-      can(length(rs_collection)) ? [
-        for idx, rs in rs_collection : {
-          fe_key = fe_key
+    for fe in var.frontends : (
+      can(fe.rule_sets) && fe.rule_sets != null ? [
+        for idx, rs in fe.rule_sets : {
+          fe_key = fe.name
           rs_key = tostring(idx)
           name   = lookup(rs, "name", tostring(idx))
           rs     = rs
-          id_key = "${fe_key}-${lookup(rs, "name", tostring(idx))}"
+          id_key = "${fe.name}-${lookup(rs, "name", tostring(idx))}"
         }
       ] : []
     )
