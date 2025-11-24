@@ -140,9 +140,9 @@ locals {
   custom_rules_flat = flatten([
     for item in local.custom_rulesets : [
       for r in lookup(item.rs, "rules", []) : {
-        id_key     = "${item.id_key}-${replace(r.name, " ", "")}"
-        rs_id_key  = item.id_key
-        rule       = r
+        id_key    = "${item.id_key}-${replace(r.name, " ", "")}"
+        rs_id_key = item.id_key
+        rule      = r
       }
     ]
   ])
