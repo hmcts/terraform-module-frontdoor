@@ -32,16 +32,16 @@ No requirements.
 | add\_access\_policy_role | Whether to add a role assignment for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription | `bool` | true | no |
 | new\_frontends | Variable holds new frontdoor configuration | `map` | {} | no |
 | front\_door\_sku\_name | Specifies the SKU for this Front Door Profile | `string` | null | no |
-| rule_sets | Custom Front Door rule sets to create and optionally associate with routes. Map keyed by identifier. Each value: name, frontends, and rules (with conditions and actions). | `map(any)` | `{}` | no |
+| rule_sets | Custom Front Door rule sets defined per frontend. Map keyed by frontend name; each value is a list (or map) of rule set objects. Each rule set supports optional name and a rules list (with conditions and actions). | `map(any)` | `{}` | no |
 
-## Example: Custom rule set configuration
+## Example: Custom rule set configuration (per frontend)
 
-Below are examples for custom rules that dynamically change the backend origin group and caching behavior based on query string parameters or cookies.
+Below is an example for custom rules that dynamically change the backend origin group and caching behavior based on query string parameters or cookies.
 
 Notes
-- Use the `frontends` list inside each rule set to attach it to frontend routes created by this module (keys must match your `frontends[*].name`).
+- Define rule sets under the frontend name key in `rule_sets`. For example, if you have a frontend named `idam-web-public`, put its rule sets under the `idam-web-public` key.
 - Set `behavior_on_match = "Stop"` on a rule when you want to stop evaluating remaining rules after it matches.
-- If you need to override the origin group for a rule, set `cdn_frontdoor_origin_group_id` to the ID of the desired origin group. If you keep it `null`, the route's default origin group is used.
+- If you need to override the origin group for a rule, set `cdn_frontdoor_origin_group_id` directly or use `cdn_frontdoor_origin_group_key` matching one of the module-managed origin groups.
 
 Example usage
 ```
@@ -50,11 +50,10 @@ module "frontdoor" {
   # ... existing required inputs ...
 
   rule_sets = {
-    hmcts-access-overrides = {
-    name = "hmcts-access-overrides"
-    frontends = ["idam-web-public"]
-
-    rules = [
+    idam-web-public = [
+      {
+        name = "hmcts-access-overrides"
+        rules = [
       # ──────────────────────────────────────────────
       # Rule 1: Query string contains client_id=...
       # ──────────────────────────────────────────────

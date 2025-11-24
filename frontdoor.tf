@@ -146,8 +146,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   cdn_frontdoor_rule_set_ids = concat(
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [],
     lookup(each.value, "hsts_header_enabled", "false") == "true" ? [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id] : [],
-    # plus all custom rule sets whose "frontends" list contains this frontend key
-    [for rs_key, rs in var.rule_sets : azurerm_cdn_frontdoor_rule_set.custom[rs_key].id if contains(lookup(rs, "frontends", []), each.key)]
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
   )
 
   enabled                = true
@@ -172,8 +172,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   cdn_frontdoor_rule_set_ids = concat(
     # base rule sets: https redirect (+ caching if enabled)
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.https_redirect.id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.https_redirect.id],
-    # plus all custom rule sets whose "frontends" list contains this frontend key
-    [for rs_key, rs in var.rule_sets : azurerm_cdn_frontdoor_rule_set.custom[rs_key].id if contains(lookup(rs, "frontends", []), each.key)]
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
   )
   enabled = true
 
@@ -232,8 +232,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   cdn_frontdoor_rule_set_ids = concat(
     # base rule sets: https redirect (+ caching if enabled)
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id],
-    # plus all custom rule sets whose "frontends" list contains this frontend key
-    [for rs_key, rs in var.rule_sets : azurerm_cdn_frontdoor_rule_set.custom[rs_key].id if contains(lookup(rs, "frontends", []), each.key)]
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
   )
   enabled = true
 
@@ -350,8 +350,8 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   cdn_frontdoor_rule_set_ids = concat(
     # base rule sets: https redirect (+ caching if enabled)
     lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id],
-    # plus all custom rule sets whose "frontends" list contains this frontend key
-    [for rs_key, rs in var.rule_sets : azurerm_cdn_frontdoor_rule_set.custom[rs_key].id if contains(lookup(rs, "frontends", []), each.key)]
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
   )
   enabled = true
 
