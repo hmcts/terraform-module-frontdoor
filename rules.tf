@@ -119,20 +119,30 @@ resource "azurerm_cdn_frontdoor_rule" "hsts_header" {
   }
 }
 
-# Custom rule sets supplied via var.rule_sets
-resource "azurerm_cdn_frontdoor_rule_set" "custom" {
-  for_each                 = var.rule_sets
-  name                     = replace(lookup(each.value, "name", each.key), "-", "")
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
-}
-
 locals {
+  # Flatten rule sets per frontend into a list of items with stable keys
+  custom_rulesets = flatten([
+    for fe_key, rs_collection in var.rule_sets : (
+      # Support both list and map inputs for per-frontend rule sets
+      can(length(rs_collection)) ? [
+        for idx, rs in rs_collection : {
+          fe_key = fe_key
+          rs_key = tostring(idx)
+          name   = lookup(rs, "name", tostring(idx))
+          rs     = rs
+          id_key = "${fe_key}-${lookup(rs, "name", tostring(idx))}"
+        }
+      ] : []
+    )
+  ])
+
+  # Flatten rules across all per-frontend rule sets
   custom_rules_flat = flatten([
-    for rs_key, rs in var.rule_sets : [
-      for r in lookup(rs, "rules", []) : {
-        id_key = "${rs_key}-${replace(r.name, " ", "")}"
-        rs_key = rs_key
-        rule   = r
+    for item in local.custom_rulesets : [
+      for r in lookup(item.rs, "rules", []) : {
+        id_key     = "${item.id_key}-${replace(r.name, " ", "")}"
+        rs_id_key  = item.id_key
+        rule       = r
       }
     ]
   ])
@@ -146,11 +156,17 @@ locals {
   )
 }
 
+resource "azurerm_cdn_frontdoor_rule_set" "custom" {
+  for_each                 = { for item in local.custom_rulesets : item.id_key => item }
+  name                     = replace("${each.value.fe_key}${each.value.name}", "-", "")
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+}
+
 resource "azurerm_cdn_frontdoor_rule" "custom" {
   for_each = { for item in local.custom_rules_flat : item.id_key => item }
 
   name                      = replace(each.value.rule.name, "-", "")
-  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.custom[each.value.rs_key].id
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.custom[each.value.rs_id_key].id
   order                     = lookup(each.value.rule, "order", 1)
   behavior_on_match         = lookup(each.value.rule, "behavior_on_match", null)
 
