@@ -63,7 +63,7 @@ module "frontdoor" {
       # Rule 1: Query string contains client_id=...
       # ──────────────────────────────────────────────
       {
-        name              = "UseHmctsAccedsIfClientIdMatches"
+        name              = "UseHmctsAccessIfClientIdMatches"
         order             = 1
         
         conditions = {
@@ -85,7 +85,7 @@ module "frontdoor" {
               # This key must exist in local.origin_group_ids
               cdn_frontdoor_origin_group_key = "hmcts-access"
               forwarding_protocol            = "HttpOnly"   
-              cache_behavior                 = "HonorOrigin" # “Caching: Disabled”
+              cache_behavior                 = "Disabled"
             }
           ]
         }
@@ -95,7 +95,7 @@ module "frontdoor" {
       # Rule 2: Cookie idam.request exists (Any)
       # ──────────────────────────────────────────────
       {
-        name  = "UseHmctsAccedsIfCookieExists"
+        name  = "UseHmctsAccessIfCookieExists"
         order = 2
         # behavior_on_match = "Stop"  # if you want to stop after this rule
 
@@ -115,7 +115,7 @@ module "frontdoor" {
             {
               cdn_frontdoor_origin_group_key = "hmcts-access"
               forwarding_protocol            = "HttpOnly"
-              cache_behavior                 = "HonorOrigin"
+              cache_behavior                 = "Disabled"
             }
           ]
         }
