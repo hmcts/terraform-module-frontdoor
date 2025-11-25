@@ -63,7 +63,7 @@ module "frontdoor" {
       # Rule 1: Query string contains client_id=...
       # ──────────────────────────────────────────────
       {
-        name              = "Test"
+        name              = "UseHmctsAccedsIfClientIdMatches"
         order             = 1
         
         conditions = {
