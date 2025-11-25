@@ -85,7 +85,7 @@ module "frontdoor" {
               # This key must exist in local.origin_group_ids
               cdn_frontdoor_origin_group_key = "hmcts-access"
               forwarding_protocol            = "HttpOnly"   
-              cache_behavior                 = "BypassCache" # “Caching: Disabled”
+              cache_behavior                 = "HonorOrigin" # “Caching: Disabled”
             }
           ]
         }
@@ -115,7 +115,7 @@ module "frontdoor" {
             {
               cdn_frontdoor_origin_group_key = "hmcts-access"
               forwarding_protocol            = "HttpOnly"
-              cache_behavior                 = "BypassCache"
+              cache_behavior                 = "HonorOrigin"
             }
           ]
         }
