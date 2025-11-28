@@ -103,5 +103,5 @@ variable "minimum_tls_version" {
 variable "cipher_suite_policy" {
   type        = string
   description = "The cipher suite policy to apply to Front Door custom domain."
-  default     = "TLS12_2022"
+  default     = null
 }
