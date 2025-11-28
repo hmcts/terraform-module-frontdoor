@@ -32,6 +32,9 @@ No requirements.
 | add\_access\_policy_role | Whether to add a role assignment for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription |     `bool`     |     true      | no |
 | new\_frontends | Variable holds new frontdoor configuration |     `map`      |      {}       | no |
 | front\_door\_sku\_name | Specifies the SKU for this Front Door Profile |    `string`    |     null      | no |
+## Example: Custom rule set configuration (per frontend)
+
+Below is an example for custom rules that dynamically change the backend origin group and caching behavior based on query string parameters or cookies.
 
 Notes
 - Define rule sets inside each frontend object under `frontends[*].rule_sets`.
