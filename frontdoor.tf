@@ -245,17 +245,47 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-  if lookup(frontend, "www_redirect", false) }
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
   name                     = "www${each.value.name}"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   host_name                = "www.${each.value.custom_domain}"
 
   tls {
     certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
-    minimum_tls_version     = "TLS12"
+    minimum_tls_version     = lookup(each.value, "minimum_tls_version", var.minimum_tls_version)
     cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
   }
+
+  # Prevent Terraform from fighting with the TLS policy patched by AzAPI
+  lifecycle {
+    ignore_changes = [
+      tls
+      # AzureRM provider does NOT understand or expose cipherSuitePolicy, but does expose tls,
+      # we can safely ignore the entire TLS block, which prevents Terraform from trying to “correct”
+      # the settings AzAPI patches.
+    ]
+  }
+}
+
+resource "azapi_update_resource" "tls_cipher_suite_policy_www" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "cipher_suite_policy", null) != null && lookup(frontend, "www_redirect", false)
+  }
+  type        = "Microsoft.Cdn/profiles/customDomains@2021-06-01"
+  resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id
+  body = jsonencode({
+    properties = {
+      tlsSettings = {
+        minimumTlsVersion = var.minimum_tls_version
+        cipherSuitePolicy = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
+      }
+    }
+  })
+  depends_on = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
@@ -371,11 +401,39 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 
   tls {
     certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
-    minimum_tls_version     = "TLS12"
+    minimum_tls_version     = lookup(each.value, "minimum_tls_version", var.minimum_tls_version)
     cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
+  }
+
+  # Prevent Terraform from fighting with the TLS policy patched by AzAPI
+  lifecycle {
+    ignore_changes = [
+      tls
+      # AzureRM provider does NOT understand or expose cipherSuitePolicy, but does expose tls,
+      # we can safely ignore the entire TLS block, which prevents Terraform from trying to “correct”
+      # the settings AzAPI patches.
+    ]
   }
 }
 
+resource "azapi_update_resource" "tls_cipher_suite_policy" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "cipher_suite_policy", null) != null
+  }
+  type        = "Microsoft.Cdn/profiles/customDomains@2021-06-01"
+  resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+  body = jsonencode({
+    properties = {
+      tlsSettings = {
+        minimumTlsVersion = var.minimum_tls_version
+        cipherSuitePolicy = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
+      }
+    }
+  })
+  # Ensure the domain exists before patching
+  depends_on = [azurerm_cdn_frontdoor_custom_domain.custom_domain]
+}
 
 
 resource "azurerm_cdn_frontdoor_secret" "certificate" {
