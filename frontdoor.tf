@@ -275,17 +275,22 @@ resource "azapi_update_resource" "tls_cipher_suite_policy_www" {
     for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "cipher_suite_policy", null) != null && lookup(frontend, "www_redirect", false)
   }
-  type        = "Microsoft.Cdn/profiles/customDomains@2021-06-01"
+
+  type        = "Microsoft.Cdn/profiles/customDomains@2025-04-15"
   resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id
+
   body = jsonencode({
     properties = {
       tlsSettings = {
-        minimumTlsVersion = var.minimum_tls_version
-        cipherSuitePolicy = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
+        minimumTlsVersion  = var.minimum_tls_version
+        cipherSuiteSetType = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
   })
-  depends_on = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www]
+
+  depends_on = [
+    azurerm_cdn_frontdoor_custom_domain.custom_domain_www
+  ]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
@@ -421,16 +426,19 @@ resource "azapi_update_resource" "tls_cipher_suite_policy" {
     for frontend in var.frontends : frontend.name => frontend
     if lookup(frontend, "cipher_suite_policy", null) != null
   }
-  type        = "Microsoft.Cdn/profiles/customDomains@2021-06-01"
+
+  type        = "Microsoft.Cdn/profiles/customDomains@2025-04-15"
   resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+
   body = jsonencode({
     properties = {
       tlsSettings = {
-        minimumTlsVersion = var.minimum_tls_version
-        cipherSuitePolicy = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
+        minimumTlsVersion  = var.minimum_tls_version
+        cipherSuiteSetType = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
   })
+
   # Ensure the domain exists before patching
   depends_on = [azurerm_cdn_frontdoor_custom_domain.custom_domain]
 }
