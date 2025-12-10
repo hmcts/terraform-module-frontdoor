@@ -109,8 +109,8 @@ variable "cipher_suite_policy" {
     - "TLS v1.2_2023": Higher security (may exclude older cipher suites)
   EOT
 
-  type        = string
-  default     = null  # Let Azure decide the default
+  type    = string
+  default = null # Let Azure decide the default
 
   validation {
     condition     = var.cipher_suite_policy == null ? true : contains(["TLS v1.2_2022", "TLS v1.2_2023"], var.cipher_suite_policy)
