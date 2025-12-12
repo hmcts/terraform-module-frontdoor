@@ -105,16 +105,16 @@ variable "cipher_suite_policy" {
   TLS policy preset for Azure Front Door custom domains.
   Options:
     - null: Use Azure's default policy
-    - "TLS v1.2_2022": More compatible (includes DHE cipher suites)
-    - "TLS v1.2_2023": Higher security (may exclude older cipher suites)
+    - "TLS12_2022": More compatible (includes DHE cipher suites)
+    - "TLS12_2023": Higher security (may exclude older cipher suites)
   EOT
 
   type    = string
   default = null # Let Azure decide the default
 
   validation {
-    condition     = var.cipher_suite_policy == null ? true : contains(["TLS v1.2_2022", "TLS v1.2_2023"], var.cipher_suite_policy)
-    error_message = "Must be null, 'TLS v1.2_2022', or 'TLS v1.2_2023'"
+    condition     = var.cipher_suite_policy == null ? true : contains(["TLS12_2022", "TLS12_2023"], var.cipher_suite_policy)
+    error_message = "Must be null, 'TLS12_2022', or 'TLS12_2023'"
   }
 }
 
