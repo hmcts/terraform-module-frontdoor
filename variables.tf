@@ -113,8 +113,8 @@ variable "cipher_suite_policy" {
   default = null # Let Azure decide the default
 
   validation {
-    condition     = var.cipher_suite_policy == null ? true : contains(["TLS v1.2_2022", "TLS v1.2_2023"], var.cipher_suite_policy)
-    error_message = "Must be null, 'TLS v1.2_2022', or 'TLS v1.2_2023'"
+    condition     = var.cipher_suite_policy == null ? true : contains(["TLS12_2022", "TLS12_2023"], var.cipher_suite_policy)
+    error_message = "Must be null, 'TLS12_2022', or 'TLS12_2023'"
   }
 }
 
