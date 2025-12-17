@@ -112,6 +112,15 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   priority                       = 1
   weight                         = 50
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
+
+  dynamic "private_link" {
+    for_each = lookup(each.value, "private_link", null) != null ? [1] : []
+    content {
+      private_link_target_id = each.value.private_link.target_id
+      location               = each.value.private_link.location
+      request_message        = "Approve AFD Private Link"
+    }
+  }
 }
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
