@@ -3,6 +3,12 @@ resource "azurerm_cdn_frontdoor_profile" "front_door" {
   resource_group_name = var.resource_group
   sku_name            = var.front_door_sku_name
   tags                = var.common_tags
+
+  lifecycle {
+    ignore_changes = [
+      identity
+    ]
+  }
 }
 
 resource "azapi_update_resource" "frontdoor_system_identity" {
