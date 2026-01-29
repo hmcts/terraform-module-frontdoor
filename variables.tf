@@ -16,15 +16,6 @@ variable "common_tags" {
   description = "Common tag to be applied"
   type        = map(string)
 }
-variable "frontends" {
-  description = "Variable holds frontdoor configuration"
-  type        = any
-}
-
-variable "subscription_id" {
-  description = "Enter ID of subscription frontdoor is deployed to"
-  type        = string
-}
 
 variable "send_access_logs_to_log_analytics" {
   description = "Send access logs to log analytics workspace, this can be quite expensive on busy FrontDoor instances so disable it and send to Storage account instead"
