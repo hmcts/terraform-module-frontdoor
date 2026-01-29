@@ -3,10 +3,14 @@ resource "azurerm_cdn_frontdoor_profile" "front_door" {
   resource_group_name = var.resource_group
   sku_name            = var.front_door_sku_name
   tags                = var.common_tags
+
+  lifecycle {
+    ignore_changes = [identity]
+  }
 }
 
 resource "azapi_update_resource" "frontdoor_system_identity" {
-  type        = "Microsoft.Cdn/profiles@2023-02-01-preview"
+  type        = "Microsoft.Cdn/profiles@2024-02-01"
   resource_id = azurerm_cdn_frontdoor_profile.front_door.id
   body = jsonencode({
     "identity" : {
@@ -14,7 +18,6 @@ resource "azapi_update_resource" "frontdoor_system_identity" {
     }
   })
   response_export_values = ["identity.principalId", "identity.tenantId"]
-
 }
 
 
