@@ -123,3 +123,15 @@ variable "rule_sets" {
   type        = any
   default     = {}
 }
+
+variable "priority" {
+  description = "Priority of the Origin host name for the custom domain"
+  type        = number
+  default     = 1
+}
+
+variable "weight" {
+  description = "Weight of the Origin host name for the custom domain"
+  type        = number
+  default     = 50
+}

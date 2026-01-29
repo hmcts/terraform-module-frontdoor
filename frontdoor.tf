@@ -49,8 +49,8 @@ resource "azurerm_cdn_frontdoor_origin" "defaultBackend_origin" {
   http_port                      = 80
   https_port                     = 443
   origin_host_header             = "www.bing.com"
-  priority                       = 1
-  weight                         = 50
+  priority                       = var.priority
+  weight                         = var.weight
   certificate_name_check_enabled = true
 }
 
@@ -112,8 +112,8 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
-  priority                       = 1
-  weight                         = 50
+  priority                       = var.priority
+  weight                         = var.weight
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
 
   dynamic "private_link" {
@@ -137,8 +137,8 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
-  priority                       = 2
-  weight                         = 25
+  priority                       = 1
+  weight                         = 50
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
 }
 
@@ -346,8 +346,8 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin_redirect" {
   host_name                      = lookup(each.value, "host_header", each.value.custom_domain)
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
-  priority                       = 1
-  weight                         = 50
+  priority                       = var.priority
+  weight                         = var.weight
   certificate_name_check_enabled = true
 }
 
