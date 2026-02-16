@@ -134,11 +134,11 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
 
   enabled                        = true
   host_name                      = each.value.backend_domain[1]
-  http_port                      = lookup(each.value, "http_port", 80)
+  http_port                      = lookup(each.value, "http_port_secondary", 80)
   https_port                     = 443
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
-  priority                       = 2
-  weight                         = 50
+  priority                       = lookup(each.value, "priority_secondary", 2)
+  weight                         = lookup(each.value, "weight_secondary", 50)
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
 }
 
