@@ -3,10 +3,14 @@ resource "azurerm_cdn_frontdoor_profile" "front_door" {
   resource_group_name = var.resource_group
   sku_name            = var.front_door_sku_name
   tags                = var.common_tags
+
+  lifecycle {
+    ignore_changes = [identity]
+  }
 }
 
 resource "azapi_update_resource" "frontdoor_system_identity" {
-  type        = "Microsoft.Cdn/profiles@2023-02-01-preview"
+  type        = "Microsoft.Cdn/profiles@2024-02-01"
   resource_id = azurerm_cdn_frontdoor_profile.front_door.id
   body = jsonencode({
     "identity" : {
@@ -14,7 +18,6 @@ resource "azapi_update_resource" "frontdoor_system_identity" {
     }
   })
   response_export_values = ["identity.principalId", "identity.tenantId"]
-
 }
 
 
@@ -109,9 +112,18 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
-  priority                       = 1
-  weight                         = 50
+  priority                       = lookup(each.value, "priority", 1)
+  weight                         = lookup(each.value, "weight", 50)
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
+
+  dynamic "private_link" {
+    for_each = lookup(each.value, "private_link", null) != null ? [1] : []
+    content {
+      private_link_target_id = each.value.private_link.target_id
+      location               = each.value.private_link.location
+      request_message        = "Approve AFD Private Link"
+    }
+  }
 }
 
 resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
@@ -122,11 +134,11 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin_tmp" {
 
   enabled                        = true
   host_name                      = each.value.backend_domain[1]
-  http_port                      = lookup(each.value, "http_port", 80)
+  http_port                      = lookup(each.value, "http_port_secondary", 80)
   https_port                     = 443
   origin_host_header             = lookup(each.value, "host_header", each.value.custom_domain)
-  priority                       = 2
-  weight                         = 25
+  priority                       = lookup(each.value, "priority_secondary", 2)
+  weight                         = lookup(each.value, "weight_secondary", 50)
   certificate_name_check_enabled = lookup(each.value, "certificate_name_check_enabled", true) ? true : false
 }
 
@@ -141,9 +153,16 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_A" {
   cdn_frontdoor_origin_group_id   = lookup(each.value, "backend_domain", []) == [] ? azurerm_cdn_frontdoor_origin_group.origin_group[each.value.backend].id : azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = lookup(each.value, "backend_domain", []) == [] ? [azurerm_cdn_frontdoor_origin.front_door_origin[each.value.backend].id] : [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : []
-  enabled                         = true
 
+  # associate rule sets with this route checking two variables 'cache_enabled' and 'hsts_header_enabled'
+  cdn_frontdoor_rule_set_ids = concat(
+    lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [],
+    lookup(each.value, "hsts_header_enabled", "false") == "true" ? [azurerm_cdn_frontdoor_rule_set.hsts_rules[each.key].id] : [],
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
+  )
+
+  enabled                = true
   supported_protocols    = lookup(each.value, "enable_ssl", true) ? ["Https"] : ["Http"]
   patterns_to_match      = lookup(each.value, "url_patterns", ["/*"])
   forwarding_protocol    = lookup(each.value, "forwarding_protocol", "HttpOnly")
@@ -162,8 +181,13 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_B" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.defaultBackend.id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.defaultBackend_origin.id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.https_redirect.id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.https_redirect.id]
-  enabled                         = true
+  cdn_frontdoor_rule_set_ids = concat(
+    # base rule sets: https redirect (+ caching if enabled)
+    lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.https_redirect.id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.https_redirect.id],
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
+  )
+  enabled = true
 
   supported_protocols    = ["Http"]
   patterns_to_match      = ["/*"]
@@ -217,8 +241,13 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id]
-  cdn_frontdoor_rule_set_ids      = lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id]
-  enabled                         = true
+  cdn_frontdoor_rule_set_ids = concat(
+    # base rule sets: https redirect (+ caching if enabled)
+    lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.www_redirect_rule_set[each.key].id],
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
+  )
+  enabled = true
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
@@ -228,17 +257,52 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_C" {
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain_www" {
-  for_each = { for frontend in var.frontends : frontend.name => frontend
-  if lookup(frontend, "www_redirect", false) }
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "www_redirect", false)
+  }
   name                     = "www${each.value.name}"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
   host_name                = "www.${each.value.custom_domain}"
 
   tls {
     certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
-    minimum_tls_version     = "TLS12"
+    minimum_tls_version     = lookup(each.value, "minimum_tls_version", var.minimum_tls_version)
     cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
   }
+
+  # Prevent Terraform from fighting with the TLS policy patched by AzAPI
+  lifecycle {
+    ignore_changes = [
+      tls
+      # AzureRM provider does NOT understand or expose cipherSuitePolicy, but does expose tls,
+      # we can safely ignore the entire TLS block, which prevents Terraform from trying to “correct”
+      # the settings AzAPI patches.
+    ]
+  }
+}
+
+resource "azapi_update_resource" "tls_cipher_suite_policy_www" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "cipher_suite_policy", null) != null && lookup(frontend, "www_redirect", false)
+  }
+
+  type        = "Microsoft.Cdn/profiles/customDomains@2025-04-15"
+  resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id
+
+  body = jsonencode({
+    properties = {
+      tlsSettings = {
+        minimumTlsVersion  = var.minimum_tls_version
+        cipherSuiteSetType = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
+      }
+    }
+  })
+
+  depends_on = [
+    azurerm_cdn_frontdoor_custom_domain.custom_domain_www
+  ]
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain_association" "custom_association_C" {
@@ -282,8 +346,8 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin_redirect" {
   host_name                      = lookup(each.value, "host_header", each.value.custom_domain)
   http_port                      = lookup(each.value, "http_port", 80)
   https_port                     = 443
-  priority                       = 1
-  weight                         = 50
+  priority                       = lookup(each.value, "priority", 1)
+  weight                         = lookup(each.value, "weight", 50)
   certificate_name_check_enabled = true
 }
 
@@ -330,8 +394,13 @@ resource "azurerm_cdn_frontdoor_route" "routing_rule_D" {
   cdn_frontdoor_origin_group_id   = azurerm_cdn_frontdoor_origin_group.origin_group_redirect[each.key].id
   cdn_frontdoor_origin_ids        = [azurerm_cdn_frontdoor_origin.front_door_origin_redirect[each.key].id]
   cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id]
-  cdn_frontdoor_rule_set_ids      = lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id]
-  enabled                         = true
+  cdn_frontdoor_rule_set_ids = concat(
+    # base rule sets: https redirect (+ caching if enabled)
+    lookup(each.value, "cache_enabled", "true") == "true" ? [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id, azurerm_cdn_frontdoor_rule_set.caching_ruleset[each.key].id] : [azurerm_cdn_frontdoor_rule_set.redirect_hostname_rule_set[each.key].id],
+    # plus all custom rule sets defined for this frontend key (per-frontend rule_sets)
+    [for item in local.custom_rulesets : azurerm_cdn_frontdoor_rule_set.custom[item.id_key].id if item.fe_key == each.key]
+  )
+  enabled = true
 
   supported_protocols    = ["Http", "Https"]
   patterns_to_match      = ["/*"]
@@ -349,11 +418,42 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 
   tls {
     certificate_type        = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? "CustomerCertificate" : "ManagedCertificate"
-    minimum_tls_version     = "TLS12"
+    minimum_tls_version     = lookup(each.value, "minimum_tls_version", var.minimum_tls_version)
     cdn_frontdoor_secret_id = lookup(each.value, "ssl_mode", "") == "AzureKeyVault" ? azurerm_cdn_frontdoor_secret.certificate[each.key].id : null
+  }
+
+  # Prevent Terraform from fighting with the TLS policy patched by AzAPI
+  lifecycle {
+    ignore_changes = [
+      tls
+      # AzureRM provider does NOT understand or expose cipherSuitePolicy, but does expose tls,
+      # we can safely ignore the entire TLS block, which prevents Terraform from trying to “correct”
+      # the settings AzAPI patches.
+    ]
   }
 }
 
+resource "azapi_update_resource" "tls_cipher_suite_policy" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "cipher_suite_policy", null) != null
+  }
+
+  type        = "Microsoft.Cdn/profiles/customDomains@2025-04-15"
+  resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
+
+  body = jsonencode({
+    properties = {
+      tlsSettings = {
+        minimumTlsVersion  = var.minimum_tls_version
+        cipherSuiteSetType = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
+      }
+    }
+  })
+
+  # Ensure the domain exists before patching
+  depends_on = [azurerm_cdn_frontdoor_custom_domain.custom_domain]
+}
 
 
 resource "azurerm_cdn_frontdoor_secret" "certificate" {

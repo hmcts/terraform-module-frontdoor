@@ -11,72 +11,88 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   tags                       = var.common_tags
   custom_block_response_body = lookup(each.value, "response_body", null)
 
-  managed_rule {
-    type    = lookup(each.value, "ruleset_type", "DefaultRuleSet")
-    version = lookup(each.value, "ruleset_value", "1.0")
-    action  = "Block"
+  dynamic "managed_rule" {
+    # If managed_rulesets is defined, use it. Otherwise, create a single ruleset from legacy fields
+    for_each = try(
+      # New format - normalize field names
+      [for ruleset in each.value.managed_rulesets : {
+        type                  = lookup(ruleset, "type", lookup(ruleset, "ruleset_type", "DefaultRuleSet"))
+        version               = lookup(ruleset, "version", lookup(ruleset, "ruleset_value", "1.0"))
+        action                = lookup(ruleset, "action", "Block")
+        disabled_rules_action = lookup(ruleset, "disabled_rules_action", "Block")
+        disabled_rules        = lookup(ruleset, "disabled_rules", {})
+        exclusions            = lookup(ruleset, "exclusions", lookup(ruleset, "global_exclusions", []))
+      }],
+      # Old format - use legacy fields
+      [
+        {
+          type                  = lookup(each.value, "ruleset_type", "DefaultRuleSet")
+          version               = lookup(each.value, "ruleset_value", "1.0")
+          action                = "Block"
+          disabled_rules_action = lookup(each.value, "disabled_rules_action", "Block")
+          disabled_rules        = lookup(each.value, "disabled_rules", {})
+          exclusions            = lookup(each.value, "global_exclusions", [])
+        }
+      ]
+    )
 
-    dynamic "exclusion" {
-      iterator = exclusion
-      for_each = lookup(each.value, "global_exclusions", [])
+    content {
+      type    = managed_rule.value.type
+      version = managed_rule.value.version
+      action  = lookup(managed_rule.value, "action", "Block")
 
-      content {
-        match_variable = exclusion.value.match_variable
-        operator       = exclusion.value.operator
-        selector       = exclusion.value.selector
+      dynamic "exclusion" {
+        for_each = lookup(managed_rule.value, "exclusions", [])
+        content {
+          match_variable = exclusion.value.match_variable
+          operator       = exclusion.value.operator
+          selector       = exclusion.value.selector
+        }
       }
-    }
 
-    dynamic "override" {
-      iterator = rulesets
-      for_each = lookup(each.value, "disabled_rules", {})
+      dynamic "override" {
+        for_each = lookup(managed_rule.value, "disabled_rules", {})
+        content {
+          rule_group_name = override.key
+          dynamic "rule" {
+            for_each = override.value
+            content {
+              rule_id = rule.value
+              enabled = false
+              action  = lookup(managed_rule.value, "disabled_rules_action", "Block")
+            }
+          }
+        }
+      }
 
-      content {
-        rule_group_name = rulesets.key
-
-        dynamic "rule" {
-          iterator = rule_id
-          for_each = rulesets.value
-
-          content {
-            rule_id = rule_id.value
-            enabled = false
-            action  = lookup(each.value, "disabled_rules_action", "Block")
+      dynamic "override" {
+        for_each = lookup(managed_rule.value, "overrides", {})
+        content {
+          rule_group_name = override.key
+          dynamic "exclusion" {
+            for_each = override.value
+            content {
+              match_variable = exclusion.value.match_variable
+              operator       = exclusion.value.operator
+              selector       = exclusion.value.selector
+            }
           }
         }
       }
     }
-    dynamic "override" {
-      iterator = oversets
-      for_each = lookup(each.value, "overrides", {})
-
-      content {
-        rule_group_name = oversets.key
-
-        dynamic "exclusion" {
-          iterator = over_id
-          for_each = oversets.value
-
-          content {
-            match_variable = over_id.value.match_variable
-            operator       = over_id.value.operator
-            selector       = over_id.value.selector
-          }
-        }
-      }
-    }
-
   }
 
   dynamic "custom_rule" {
     iterator = custom_rule
     for_each = lookup(each.value, "custom_rules", [])
     content {
-      name     = custom_rule.value.name
-      enabled  = true
-      priority = custom_rule.value.priority
-      type     = custom_rule.value.type
-      action   = custom_rule.value.action
+      name                           = custom_rule.value.name
+      enabled                        = true
+      priority                       = custom_rule.value.priority
+      type                           = custom_rule.value.type
+      action                         = custom_rule.value.action
+      rate_limit_duration_in_minutes = lookup(custom_rule.value, "rate_limit_duration_in_minutes", null)
+      rate_limit_threshold           = lookup(custom_rule.value, "rate_limit_threshold", null)
 
       dynamic "match_condition" {
         iterator = match_condition

@@ -99,3 +99,34 @@ variable "name" {
   default     = null
   description = "The default name will be project-env, you can override the product+component part by setting this"
 }
+
+variable "minimum_tls_version" {
+  type        = string
+  description = "The default TLS policy to apply to Front Door custom domain."
+  default     = "TLS12"
+}
+
+variable "cipher_suite_policy" {
+  description = <<-EOT
+  TLS policy preset for Azure Front Door custom domains.
+  Options:
+    - null: Use Azure's default policy
+    - "TLS12_2022": More compatible (includes DHE cipher suites)
+    - "TLS12_2023": Higher security (may exclude older cipher suites)
+  EOT
+
+  type    = string
+  default = null # Let Azure decide the default
+
+  validation {
+    condition     = var.cipher_suite_policy == null ? true : contains(["TLS12_2022", "TLS12_2023"], var.cipher_suite_policy)
+    error_message = "Must be null, 'TLS12_2022', or 'TLS12_2023'"
+  }
+}
+
+variable "rule_sets" {
+  description = "Custom Front Door rule sets to create. Map keyed by an identifier; each value supports: name (string), frontends (list(string)) to associate with frontend routes, and rules (list of rule objects). Each rule supports name, order, optional behavior_on_match, conditions (object with lists per condition type), and actions (object with lists per action type)."
+  type        = any
+  default     = {}
+}
+

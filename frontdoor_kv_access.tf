@@ -7,6 +7,13 @@ resource "azurerm_key_vault_access_policy" "frontdoor_premium_kv_access" {
   secret_permissions      = ["Get", "List"]
   certificate_permissions = ["Get", "List"]
   key_permissions         = ["Get", "List"]
+
+  lifecycle {
+    ignore_changes = [
+      object_id,
+      tenant_id
+    ]
+  }
 }
 
 resource "azurerm_role_assignment" "frontdoor_premium_kv_access" {
@@ -15,4 +22,10 @@ resource "azurerm_role_assignment" "frontdoor_premium_kv_access" {
   role_definition_name = "Key Vault Secrets User"
   principal_id         = jsondecode(azapi_update_resource.frontdoor_system_identity.output).identity.principalId
   scope                = data.azurerm_key_vault.certificate_vault[0].id
+
+  lifecycle {
+    ignore_changes = [
+      principal_id
+    ]
+  }
 }
