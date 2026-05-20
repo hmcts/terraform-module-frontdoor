@@ -25,7 +25,7 @@ resource "azurerm_monitor_diagnostic_setting" "diagnostics_access_logs_la" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "diagnostics_access_logs_sa" {
-  count = var.diagnostics_storage_account_id != null ? 1 : 0
+  count = var.send_access_logs_to_storage_account ? 1 : 0
 
   name               = "fd-log-analytics-logs-sa"
   target_resource_id = azurerm_cdn_frontdoor_profile.front_door.id
