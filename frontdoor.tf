@@ -121,6 +121,7 @@ resource "azurerm_cdn_frontdoor_origin" "front_door_origin" {
     content {
       private_link_target_id = each.value.private_link.target_id
       location               = each.value.private_link.location
+      target_type            = lookup(each.value.private_link, "target_type", null)
       request_message        = "Approve AFD Private Link"
     }
   }
