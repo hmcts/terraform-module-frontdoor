@@ -90,3 +90,34 @@ resource "azurerm_cdn_frontdoor_rule" "caching_rule" {
 
   depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
 }
+
+resource "azurerm_cdn_frontdoor_rule_set" "hsts_rule_set" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "hsts_header_enabled", "false") == "true"
+  }
+  name                     = replace("${each.value.name}hstsruleset", "-", "")
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.front_door.id
+}
+
+resource "azurerm_cdn_frontdoor_rule" "hsts_rule" {
+  for_each = {
+    for frontend in var.frontends : frontend.name => frontend
+    if lookup(frontend, "hsts_header_enabled", "false") == "true"
+  }
+  name = replace("${each.value.name}hstsrule", "-", "")
+
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.hsts_rule_set[each.key].id
+  order                     = 1
+  behavior_on_match         = "Continue"
+
+  actions {
+    response_header_action {
+      header_action = "Append"
+      header_name   = "Strict-Transport-Security"
+      value         = "max-age=31536000"
+    }
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_origin_group.defaultBackend, azurerm_cdn_frontdoor_origin.defaultBackend_origin]
+}
