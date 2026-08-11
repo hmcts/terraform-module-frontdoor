@@ -17,9 +17,6 @@ resource "azapi_update_resource" "frontdoor_system_identity" {
   # avoid inconsistent apply due to provider output mutation
   response_export_values = []
 
-  lifecycle {
-    ignore_changes = [output]
-  }
 }
 
 
