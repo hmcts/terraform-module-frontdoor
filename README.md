@@ -63,7 +63,8 @@ A rule with exclusions remains enabled and uses the ruleset's action. Existing
 
 The plan-only tests in `tests/waf_exclusions.tftest.hcl` use mocked providers
 (Terraform 1.7+) and do not create Azure resources. The WAF exclusions workflow
-runs them against AzureRM 4.x, matching `azure-platform-terraform`.
+runs them against AzureRM 4.x, matching `azure-platform-terraform`. AzureRM 5.x
+is excluded because it removes resource arguments this module still uses.
 
 ## Custom rule set configuration (per frontend)
 Azure Front Door Custom Rule Sets let you define edge-level conditions and actions to control, modify, or route HTTP(S) traffic before it reaches origins. 
