@@ -6,3 +6,6 @@
 *.swp
 .idea/*
 tfplan
+
+# Local/CI provider constraint used by the mocked WAF tests.
+waf_test_override.tf

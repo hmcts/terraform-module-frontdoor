@@ -33,6 +33,38 @@ No requirements.
 | new\_frontends | Variable holds new frontdoor configuration |     `map`      |      {}       | no |
 | front\_door\_sku\_name | Specifies the SKU for this Front Door Profile |    `string`    |     null      | no |
 
+## Managed WAF rule exclusions
+
+Use `rule_exclusions` to exclude named request values from individual managed WAF
+rules. Other rules still inspect those values, and the selected rules still inspect
+the rest of the request. Unlike `global_exclusions`, this does not exclude the value
+from the entire ruleset.
+
+The map is keyed by rule group, then rule ID. For legacy frontend configuration,
+set it on the frontend; when using `managed_rulesets`, set it inside the ruleset.
+For example:
+
+```hcl
+rule_exclusions = {
+  SQLI = {
+    "942440" = [
+      {
+        match_variable = "RequestCookieNames"
+        operator       = "Equals"
+        selector       = "app_session"
+      }
+    ]
+  }
+}
+```
+
+A rule with exclusions remains enabled and uses the ruleset's action. Existing
+`disabled_rules` take precedence if the same rule appears in both maps.
+
+The plan-only tests in `tests/waf_exclusions.tftest.hcl` use mocked providers
+(Terraform 1.7+) and do not create Azure resources. The WAF exclusions workflow
+runs them against AzureRM 4.x, matching `azure-platform-terraform`.
+
 ## Custom rule set configuration (per frontend)
 Azure Front Door Custom Rule Sets let you define edge-level conditions and actions to control, modify, or route HTTP(S) traffic before it reaches origins. 
 They enable advanced routing, security, and caching (e.g., redirects, header rewrites, IP blocking) and work alongside— but are distinct from—WAF rules.

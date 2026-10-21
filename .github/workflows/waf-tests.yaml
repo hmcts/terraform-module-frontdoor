@@ -1,0 +1,31 @@
+name: WAF exclusions
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  waf-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - name: Use the platform's AzureRM provider series
+        run: |
+          cat > waf_test_override.tf <<'HCL'
+          terraform {
+            required_providers {
+              azurerm = {
+                source  = "hashicorp/azurerm"
+                version = "~> 4.0"
+              }
+            }
+          }
+          HCL
+      - run: terraform init -backend=false -input=false
+      - run: terraform test -filter=tests/waf_exclusions.tftest.hcl

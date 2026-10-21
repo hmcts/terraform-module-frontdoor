@@ -21,6 +21,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
         action                = lookup(ruleset, "action", "Block")
         disabled_rules_action = lookup(ruleset, "disabled_rules_action", "Block")
         disabled_rules        = lookup(ruleset, "disabled_rules", {})
+        rule_exclusions       = lookup(ruleset, "rule_exclusions", {})
         exclusions            = lookup(ruleset, "exclusions", lookup(ruleset, "global_exclusions", []))
       }],
       # Old format - use legacy fields
@@ -31,6 +32,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
           action                = "Block"
           disabled_rules_action = lookup(each.value, "disabled_rules_action", "Block")
           disabled_rules        = lookup(each.value, "disabled_rules", {})
+          rule_exclusions       = lookup(each.value, "rule_exclusions", {})
           exclusions            = lookup(each.value, "global_exclusions", [])
         }
       ]
@@ -51,34 +53,37 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
       }
 
       dynamic "override" {
-        for_each = lookup(managed_rule.value, "disabled_rules", {})
+        # Emit one override per group, including when it has both disabled rules and exclusions.
+        for_each = setunion(keys(managed_rule.value.disabled_rules), keys(managed_rule.value.rule_exclusions))
         content {
-          rule_group_name = override.key
+          rule_group_name = override.value
           dynamic "rule" {
-            for_each = override.value
+            # Keep existing disabled-rule order; append only new rule IDs.
+            for_each = distinct(concat(
+              lookup(managed_rule.value.disabled_rules, override.value, []),
+              keys(lookup(managed_rule.value.rule_exclusions, override.value, {}))
+            ))
             content {
               rule_id = rule.value
-              enabled = false
-              action  = lookup(managed_rule.value, "disabled_rules_action", "Block")
+              enabled = !contains(lookup(managed_rule.value.disabled_rules, override.value, []), rule.value)
+              action = contains(lookup(managed_rule.value.disabled_rules, override.value, []), rule.value) ? (
+                managed_rule.value.disabled_rules_action
+              ) : managed_rule.value.action
+
+              dynamic "exclusion" {
+                for_each = lookup(lookup(managed_rule.value.rule_exclusions, override.value, {}), rule.value, [])
+                content {
+                  match_variable = exclusion.value.match_variable
+                  operator       = exclusion.value.operator
+                  selector       = exclusion.value.selector
+                }
+              }
             }
           }
         }
       }
 
-      dynamic "override" {
-        for_each = lookup(managed_rule.value, "overrides", {})
-        content {
-          rule_group_name = override.key
-          dynamic "exclusion" {
-            for_each = override.value
-            content {
-              match_variable = exclusion.value.match_variable
-              operator       = exclusion.value.operator
-              selector       = exclusion.value.selector
-            }
-          }
-        }
-      }
+
     }
   }
 
