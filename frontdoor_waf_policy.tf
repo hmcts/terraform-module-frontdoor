@@ -83,12 +83,40 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "custom" {
   }
 
   dynamic "custom_rule" {
+    iterator = global_rule
+    for_each = var.global_blocklist
+
+    content {
+      name                           = global_rule.value.name
+      enabled                        = lookup(global_rule.value, "enabled", true)
+      priority                       = global_rule.key + 1
+      type                           = lookup(global_rule.value, "type", "MatchRule")
+      action                         = global_rule.value.action
+      rate_limit_duration_in_minutes = lookup(global_rule.value, "rate_limit_duration_in_minutes", null)
+      rate_limit_threshold           = lookup(global_rule.value, "rate_limit_threshold", null)
+
+      dynamic "match_condition" {
+        iterator = match_condition
+        for_each = lookup(global_rule.value, "match_conditions", [])
+        content {
+          match_variable     = match_condition.value.match_variable
+          operator           = match_condition.value.operator
+          negation_condition = lookup(match_condition.value, "negation_condition", false)
+          match_values       = match_condition.value.match_values
+          transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
+          selector           = match_condition.value.match_variable == "PostArgs" || match_condition.value.match_variable == "RequestHeader" ? match_condition.value.selector : null
+        }
+      }
+    }
+  }
+
+  dynamic "custom_rule" {
     iterator = custom_rule
     for_each = lookup(each.value, "custom_rules", [])
     content {
       name                           = custom_rule.value.name
       enabled                        = true
-      priority                       = custom_rule.value.priority
+      priority                       = custom_rule.value.priority + length(var.global_blocklist)
       type                           = custom_rule.value.type
       action                         = custom_rule.value.action
       rate_limit_duration_in_minutes = lookup(custom_rule.value, "rate_limit_duration_in_minutes", null)
@@ -143,6 +171,34 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "default_waf_policy" {
   redirect_url               = lookup(each.value, "redirect_url", null)
   tags                       = var.common_tags
   custom_block_response_body = lookup(each.value, "response_body", null)
+
+  dynamic "custom_rule" {
+    iterator = global_rule
+    for_each = var.global_blocklist
+
+    content {
+      name                           = global_rule.value.name
+      enabled                        = lookup(global_rule.value, "enabled", true)
+      priority                       = global_rule.key + 1
+      type                           = lookup(global_rule.value, "type", "MatchRule")
+      action                         = global_rule.value.action
+      rate_limit_duration_in_minutes = lookup(global_rule.value, "rate_limit_duration_in_minutes", null)
+      rate_limit_threshold           = lookup(global_rule.value, "rate_limit_threshold", null)
+
+      dynamic "match_condition" {
+        iterator = match_condition
+        for_each = lookup(global_rule.value, "match_conditions", [])
+        content {
+          match_variable     = match_condition.value.match_variable
+          operator           = match_condition.value.operator
+          negation_condition = lookup(match_condition.value, "negation_condition", false)
+          match_values       = match_condition.value.match_values
+          transforms         = can(match_condition.value.transforms) ? match_condition.value.transforms : null
+          selector           = match_condition.value.match_variable == "PostArgs" || match_condition.value.match_variable == "RequestHeader" ? match_condition.value.selector : null
+        }
+      }
+    }
+  }
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "default_security_policy" {

@@ -30,8 +30,20 @@ No requirements.
 | subscription\_id | Enter Subscription ID |    `string`    |      n/a      | yes |
 | add\_access\_policy | Whether to add an access policy for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription |     `bool`     |     true      | no |
 | add\_access\_policy_role | Whether to add a role assignment for frontdoor to the subscription key vault, disable if there's multiple front doors in one subscription |     `bool`     |     true      | no |
+| global\_blocklist | Custom WAF rules applied to every frontend policy before frontend-specific rules | `list(object)` | `[]` | no |
 | new\_frontends | Variable holds new frontdoor configuration |     `map`      |      {}       | no |
 | front\_door\_sku\_name | Specifies the SKU for this Front Door Profile |    `string`    |     null      | no |
+
+## Global WAF blocklist
+
+Use `global_blocklist` for WAF rules that must be consistently applied to every
+frontend policy. Rules are assigned priorities in list order, starting at 1.
+Frontend-specific custom-rule priorities are shifted by the number of global
+rules, ensuring that an existing Allow rule cannot run first.
+
+Set a rule's action to `Log` for an observation-only rollout, then change it to
+`Block` when it is ready for enforcement. A WAF policy in Detection mode always
+logs, even when the rule action is `Block`.
 
 ## Custom rule set configuration (per frontend)
 Azure Front Door Custom Rule Sets let you define edge-level conditions and actions to control, modify, or route HTTP(S) traffic before it reaches origins. 
