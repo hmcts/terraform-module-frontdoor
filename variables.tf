@@ -18,7 +18,22 @@ variable "common_tags" {
 }
 variable "frontends" {
   description = "Variable holds frontdoor configuration"
-  type        = any
+  type = list(object({
+    name                           = string
+    action                         = string
+    enabled                        = optional(bool, true)
+    type                           = optional(string, "MatchRule")
+    rate_limit_duration_in_minutes = optional(number)
+    rate_limit_threshold           = optional(number)
+    match_conditions = list(object({
+      match_variable     = string
+      operator           = string
+      negation_condition = optional(bool, false)
+      match_values       = list(string)
+      transforms         = optional(list(string))
+      selector           = optional(string)
+    }))
+  }))
 }
 
 variable "subscription_id" {
@@ -122,5 +137,16 @@ variable "rule_sets" {
   description = "Custom Front Door rule sets to create. Map keyed by an identifier; each value supports: name (string), frontends (list(string)) to associate with frontend routes, and rules (list of rule objects). Each rule supports name, order, optional behavior_on_match, conditions (object with lists per condition type), and actions (object with lists per action type)."
   type        = any
   default     = {}
+}
+
+variable "global_blocklist" {
+  description = "Custom WAF rules applied to every frontend policy before frontend-specific rules. Rules are assigned priorities in list order, starting at 1."
+  type        = any
+  default     = []
+
+  validation {
+    condition     = alltrue([for rule in var.global_blocklist : contains(["Log", "Block"], rule.action)])
+    error_message = "Each global_blocklist rule action must be Log or Block."
+  }
 }
 
