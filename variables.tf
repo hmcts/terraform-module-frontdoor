@@ -18,22 +18,7 @@ variable "common_tags" {
 }
 variable "frontends" {
   description = "Variable holds frontdoor configuration"
-  type = list(object({
-    name                           = string
-    action                         = string
-    enabled                        = optional(bool, true)
-    type                           = optional(string, "MatchRule")
-    rate_limit_duration_in_minutes = optional(number)
-    rate_limit_threshold           = optional(number)
-    match_conditions = list(object({
-      match_variable     = string
-      operator           = string
-      negation_condition = optional(bool, false)
-      match_values       = list(string)
-      transforms         = optional(list(string))
-      selector           = optional(string)
-    }))
-  }))
+  type        = any
 }
 
 variable "subscription_id" {
