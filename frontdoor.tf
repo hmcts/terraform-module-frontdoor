@@ -12,11 +12,11 @@ resource "azurerm_cdn_frontdoor_profile" "front_door" {
 resource "azapi_update_resource" "frontdoor_system_identity" {
   type        = "Microsoft.Cdn/profiles@2024-02-01"
   resource_id = azurerm_cdn_frontdoor_profile.front_door.id
-  body = jsonencode({
+  body = {
     "identity" : {
       "type" : "SystemAssigned"
     }
-  })
+  }
   response_export_values = ["identity.principalId", "identity.tenantId"]
 }
 
@@ -292,14 +292,14 @@ resource "azapi_update_resource" "tls_cipher_suite_policy_www" {
   type        = "Microsoft.Cdn/profiles/customDomains@2025-04-15"
   resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain_www[each.key].id
 
-  body = jsonencode({
+  body = {
     properties = {
       tlsSettings = {
         minimumTlsVersion  = var.minimum_tls_version
         cipherSuiteSetType = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
-  })
+  }
 
   depends_on = [
     azurerm_cdn_frontdoor_custom_domain.custom_domain_www
@@ -443,14 +443,14 @@ resource "azapi_update_resource" "tls_cipher_suite_policy" {
   type        = "Microsoft.Cdn/profiles/customDomains@2025-04-15"
   resource_id = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
 
-  body = jsonencode({
+  body = {
     properties = {
       tlsSettings = {
         minimumTlsVersion  = var.minimum_tls_version
         cipherSuiteSetType = lookup(each.value, "cipher_suite_policy", var.cipher_suite_policy)
       }
     }
-  })
+  }
 
   # Ensure the domain exists before patching
   depends_on = [azurerm_cdn_frontdoor_custom_domain.custom_domain]
