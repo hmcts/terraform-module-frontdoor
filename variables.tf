@@ -124,3 +124,14 @@ variable "rule_sets" {
   default     = {}
 }
 
+variable "global_blocklist" {
+  description = "Custom WAF rules applied to every frontend policy before frontend-specific rules. Rules are assigned priorities in list order, starting at 1."
+  type        = any
+  default     = []
+
+  validation {
+    condition     = alltrue([for rule in var.global_blocklist : contains(["Log", "Block"], rule.action)])
+    error_message = "Each global_blocklist rule action must be Log or Block."
+  }
+}
+
