@@ -71,6 +71,12 @@ variable "diagnostics_storage_account_id" {
   description = "ID of a storage account to send access logs to."
   default     = null
 }
+
+variable "send_access_logs_to_storage_account" {
+  description = "Send access logs to a storage account. Set to true when providing a diagnostics_storage_account_id."
+  type        = bool
+  default     = false
+}
 variable "log_analytics_workspace_id" {
   description = "Enter log analytics workspace id"
   type        = string
